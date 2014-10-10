@@ -1,0 +1,3 @@
+f reset
+
+reset Autopilot, PTAM in EKF (ponastavi na začetno lokacijo (resetira ocenjeno lokacijo na 0-sredino mape))

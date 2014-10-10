@@ -1,0 +1,4 @@
+c goto [doube x] [double y] [double z] [double yaw]
+
+flies to position (x,y,z yaw), relative to current reference point.
+blocks until target is reached according to set parameters

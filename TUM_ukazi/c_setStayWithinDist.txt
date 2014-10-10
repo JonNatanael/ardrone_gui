@@ -1,0 +1,3 @@
+c setStayWithinDist [double dist = 0.5]
+
+drone has to stay this close to a way point for a certain amount of time.

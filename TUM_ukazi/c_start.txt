@@ -1,0 +1,3 @@
+c start
+
+(start auto control) ukaz prejme node drone_autopilot in mu sporoči naj prične samodejno krmiliti drona

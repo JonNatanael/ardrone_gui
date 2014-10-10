@@ -1,0 +1,29 @@
+<!-- <library path="src">
+-->
+<library path="lib/librqt_mypkg">
+<!--
+  <class name="rqt_mypkg/MyPlugin" type="rqt_mypkg::MyPlugin" base_class_type="rqt_gui_cpp::Plugin">
+-->
+<!--
+  <class name="My Plugin" type="rqt_mypkg.my_module.MyPlugin" base_class_type="rqt_gui_cpp::Plugin">
+-->
+<class name="rqt_mypkg/MyPlugin" type="my_namespace::MyPlugin" base_class_type="rqt_gui_cpp::Plugin">
+    <description>
+	AR Drone GUI
+    </description>
+    <qtgui>
+      <!-- optional grouping...
+      <group>
+        <label>Group</label>
+      </group>
+      <group>
+        <label>Subgroup</label>
+      </group>
+      -->
+      <label>Drone control GUI</label>
+      <!--<icon type="theme">applications-other</icon>-->
+	<icon>parrot.png</icon>
+      <statustip>AR Drone GUI</statustip>
+    </qtgui>
+  </class>
+</library>

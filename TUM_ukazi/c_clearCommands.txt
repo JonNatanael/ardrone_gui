@@ -1,0 +1,3 @@
+c clearCommands
+
+clears all targets, such that the next command is executed immediately.

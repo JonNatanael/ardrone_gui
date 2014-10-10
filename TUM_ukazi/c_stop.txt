@@ -1,0 +1,3 @@
+c stop
+
+(stop auto control) ukaz prejme node drone_autocontrol in mu sporoči naj preneha samodejno krmiliti drona

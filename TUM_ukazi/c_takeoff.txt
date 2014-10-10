@@ -1,0 +1,4 @@
+c takeoff
+
+ - takes control, starts drone.
+ - does not reset map or initialize PTAM

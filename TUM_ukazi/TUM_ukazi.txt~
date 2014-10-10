@@ -1,0 +1,17 @@
+c stop
+c start
+c clearCommands
+f reset
+c autoInit
+c autoTakeover
+c setReference 
+c setMaxControl
+c setInitialReachDist
+c setStayWithinDist
+c setStayTime
+c clearCommands
+c goto
+c moveBy
+c moveByRel
+c land  
+c lockScaleFP

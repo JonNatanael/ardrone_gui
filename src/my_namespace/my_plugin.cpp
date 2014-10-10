@@ -1,0 +1,490 @@
+#include <my_namespace/my_plugin.h>
+#include <pluginlib/class_list_macros.h>
+#include <QStringList>
+//#include <ros/publisher.h>
+//#include <ros/subscriber.h>
+//#include <ros/ros.h>
+
+
+
+
+namespace my_namespace {
+
+MyPlugin::MyPlugin()
+  : rqt_gui_cpp::Plugin()
+  , widget_(0)
+{
+  // Constructor is called first before initPlugin function, needless to say.
+
+  // give QObjects reasonable names
+  setObjectName("MyPlugin");
+}
+
+void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
+{
+  // access standalone command line arguments
+  QStringList argv = context.argv();
+  // create QWidget
+  widget_ = new QWidget();
+  // extend the widget with all attributes and children from UI file
+  ui_.setupUi(widget_);
+  // add widget to the user interface
+  context.addWidget(widget_);
+  
+  ros::start();
+  
+//  clickoff();
+  // poveži funkcije (callback) s tipkami
+  //****  krmiljenje:
+  connect( ui_.take_off_b, 		SIGNAL(pressed()), 				this, SLOT(click_take_off_button())		);
+  connect( ui_.land_b, 			SIGNAL(pressed()), 				this, SLOT(click_land_button())			);
+  connect( ui_.emergency_off_b, SIGNAL(pressed()), 				this, SLOT(click_emergency_off_button()));
+  connect( ui_.doubleSpinBox, 	SIGNAL(valueChanged(double)), 	this, SLOT(spinbox_changed(double)) 	);
+  connect( ui_.doubleSpinBox_2, SIGNAL(valueChanged(double)), 	this, SLOT(spinbox2_changed(double)) 	);
+  connect( ui_.set_front_cam_b, SIGNAL(pressed()),				this, SLOT(clickCameraFront())			);
+  connect( ui_.set_bottom_cam_b, SIGNAL(pressed()),				this, SLOT(clickCameraBottom())			);
+  connect( ui_.Button_autoLand, SIGNAL(pressed()),				this, SLOT(clickAutoLand())				);
+    
+  //****  tum ar.drone
+  connect( ui_.Button_add,		SIGNAL(pressed()),				this, SLOT(clickAddButton())			);
+  connect( ui_.Button_clear,	SIGNAL(pressed()),				this, SLOT(clickClearButton())			);
+  connect( ui_.Button_send, 	SIGNAL(pressed()),				this, SLOT(clickSendButton())			);
+  connect( ui_.Button_reset,	SIGNAL(pressed()),				this, SLOT(clickResetButton())			);
+  connect( ui_.comboBox_commands, SIGNAL(currentIndexChanged(QString)),			this, SLOT(comboBoxCommand(QString))	);
+  connect( ui_.Button_openFile, SIGNAL(pressed()),			this, SLOT(openFileButton())			);
+  connect( ui_.radioB_onlyJ,    SIGNAL(pressed()),			this, SLOT(radioB_joy())				);
+  connect( ui_.radioB_tumAP,    SIGNAL(pressed()),			this, SLOT(radioB_autopilot())			);
+  connect( ui_.radioB_jAndAuto, SIGNAL(pressed()),			this, SLOT(radioB_joyAndAuto())			);
+  
+//  connect(ui_.emergency_off_b, SIGNAL(pressed()), this, SLOT(clickoff()));
+  
+  // publishers:
+  // 
+  pub_take_off 	= n_.advertise<std_msgs::Empty>("/ardrone/takeoff", 1);
+  pub_land 		= n_.advertise<std_msgs::Empty>("/ardrone/land", 1);
+  pub_emergency = n_.advertise<std_msgs::Empty>("/ardrone/reset", 1);
+  
+//  cam_client = n_.serviceClient<ardrone_>("ardrone/setcamchannel");
+//	cam_client = n_.serviceClient("ardrone/setcamchannel");
+  
+  //navdata sub:
+//  navdata_sub = n_.subscribe<ardrone_autonomy::Navdata,MyPlugin>("/ardrone/navdata", 1, &MyPlugin::navdata_callback, this);
+	navdata_sub = n_.subscribe("/ardrone/navdata", 1, &MyPlugin::navdata_callback, this);
+  
+  //joy:
+  joy_sub_ = n_joy.subscribe<sensor_msgs::Joy,MyPlugin>("/joy", 1, &MyPlugin::joy_callback, this);
+  joy_vel_ = n_joy.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
+  
+  // tum drone commands
+  pub_tum_commands = n_.advertise<std_msgs::String>("/tum_ardrone/com", 1);
+//  sub_tum_commands = n_.subscribe<std_msgs::String>("/tum_ardrone/com", 1, &MyPlugin::subTumCommands, this);
+  
+//  start();
+	
+	axes_max	= (float)ui_.doubleSpinBox->value();
+	axes_scale	= (float)ui_.doubleSpinBox_2->value();
+	
+	// call service?
+	camera_select(0);
+	
+	topics_ok = 1;
+	
+	//Tum combobox:
+	TumList  << "c autoInit"
+			<< "c autoTakeover"
+			<< "c clearCommands"
+			<< "c goto"
+			<< "c land"
+			<< "c lockScaleFP"
+			<< "c moveBy"
+			<< "c moveByRel"
+			<< "f reset"
+			<< "c setInitialReachDist"
+			<< "c setMaxControl"
+			<< "c setReference"
+			<< "c setStayWithinDist"
+			<< "c setStayTime"
+			<< "c start"
+			<< "c stop";
+	ui_.comboBox_commands->addItems(TumList);
+	
+	battery = 0;
+	startTimer(25);
+}
+
+void MyPlugin::shutdownPlugin()
+{
+  // TODO unregister all publishers here
+  pub_take_off.shutdown();
+  pub_land.shutdown();
+  pub_emergency.shutdown();
+  navdata_sub.shutdown();
+  n_.shutdown();
+  
+  joy_sub_.shutdown();
+  joy_vel_.shutdown();
+  n_joy.shutdown();
+  
+  topics_ok = 0;
+}
+
+void MyPlugin::saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const
+{
+  // TODO save intrinsic configuration, usually using:
+  // instance_settings.setValue(k, v)
+}
+
+void MyPlugin::restoreSettings(const qt_gui_cpp::Settings& plugin_settings, const qt_gui_cpp::Settings& instance_settings)
+{
+  // TODO restore intrinsic configuration, usually using:
+  // v = instance_settings.value(k)
+}
+
+// POVRATNI KLICI:
+
+//**** krmiljenje:
+
+void MyPlugin::click_take_off_button(){
+	MyPlugin::drone_take_off();
+	test("Taking off");
+}
+
+void MyPlugin::click_land_button(){
+	MyPlugin::drone_land();
+	test("Landing");
+}
+
+void MyPlugin::click_emergency_off_button(){
+	MyPlugin::drone_emergency();
+	//MyPlugin::test("pristanek v sili");
+}
+
+void MyPlugin::clickCameraFront(){
+	MyPlugin::camera_select(0);
+	// set message: selected bottom camera
+}
+
+void MyPlugin::clickCameraBottom(){
+	MyPlugin::camera_select(1);
+	// set mesage: selected bottom camera
+}
+
+void MyPlugin::clickAutoLand(){
+	test("Ni se implementirano.");
+}
+  
+//-- radio buttons
+void MyPlugin::radioB_joy(){
+	test("Only joystick.");
+}
+
+void MyPlugin::radioB_autopilot(){
+	test("Tum AutoPilot.");
+}
+void MyPlugin::radioB_joyAndAuto(){
+	test("Joystick and AutoPilot. ()");
+}
+
+  
+//****  TUM AR.Drone:
+void MyPlugin::clickAddButton(){
+	// kopiraj besedilo iz "lineEdit_command" in ga dodaj na seznam "Send commands"
+	ui_.textEdit_sendC->append( ui_.lineEdit_command->text() );
+}
+
+void MyPlugin::clickClearButton(){
+	// počisti buffer ukazov v vrsti autopilot
+	std_msgs::String msg;
+	msg.data="c clearCommands";
+	pub_tum_commands.publish(msg);
+	// tumClearC();
+	
+}
+
+void MyPlugin::clickSendButton(){
+	// pošlji ukaz/e iz seznama "Send commands"
+	// ukaze se pošilja kot string...
+	
+	// tvorjenje sporočil:
+	std_msgs::String msg;
+	QString str = ui_.textEdit_sendC->toPlainText();
+	QStringList list = str.split("\n");
+	for(int q=0; q< list.size(); q++){
+		msg.data = list.at(q).toUtf8().constData();
+		pub_tum_commands.publish(msg);
+	}
+	msg.data = "c start";
+	pub_tum_commands.publish(msg);
+	//tumSendC();
+}
+
+void MyPlugin::clickResetButton(){
+	// resetiraj PTAM.....
+	std_msgs::String msg;
+	msg.data="c stop";
+	pub_tum_commands.publish(msg);
+	msg.data="c clearCommands";
+	pub_tum_commands.publish(msg);
+	msg.data="f reset";
+	pub_tum_commands.publish(msg);
+	//tumResetC();
+}
+
+void MyPlugin::comboBoxCommand(QString str){
+	ui_.lineEdit_command->setText(str);
+	test(str);
+	//odpri datoteko in prikaži še info o izbranem ukazu...
+	str.replace(QString(" "), QString("_"));
+	test(str);
+	QString fileName = QString("/home/jon/Desktop/catkin_ws/src/rqt_mypkg/TUM_ukazi/") + str + QString(".txt");
+	if(!fileName.isEmpty()){
+		QFile file(fileName);
+		if(!file.open(QIODevice::ReadOnly)){
+			QMessageBox::critical(0, QString("Error"), QString("Could not open file: ")+fileName);
+			ui_.label_zgradba_ukaza->setText(QString());
+			ui_.textEdit_opis->setPlainText(QString());
+			return;
+		}
+		QTextStream in(&file);
+		ui_.label_zgradba_ukaza->setText(in.readLine());
+		in.seek(0);
+		ui_.textEdit_opis->setPlainText(in.readAll());
+		//ui_.label_zgradba_ukaza->setText(in.readLine());
+		file.close();
+	}
+}
+
+void MyPlugin::openFileButton(){
+	QString fileName = QFileDialog::getOpenFileName(0, tr("Open File"), QString(), tr("Text Files (*.txt);;All Files ()"));
+	//QString fileName = QFileDialog::getOpenFileName(0, "Open File", "", "Text Files (*.txt)");
+	
+	if(!fileName.isEmpty()){
+		QFile file(fileName);
+		if(!file.open(QIODevice::ReadOnly)){
+			QMessageBox::critical(0, "Error", "Could not open file");
+			return;
+		}
+		QTextStream in(&file);
+		ui_.textEdit_sendC->append(in.readAll());
+		file.close();
+	}
+}
+
+//-------------
+
+//void MyPlugin::test(std::string niz="jupej"){
+void MyPlugin::test(QString niz){
+	ui_.label_joy->setText(niz);
+}
+
+// navdata:
+void MyPlugin::navdata_callback(const ardrone_autonomy::Navdata& nav_msg){
+	//ui_.label_joy->setText(QString::number(nav_msg.batteryPercent, 'f', 4));
+    
+	//KRMILJENJE:
+	//ui_.progressBar->setValue(nav_msg.batteryPercent); // tole ni varno tu klicati, pogruntaj nekaj drugega
+	//test(ui_.progressBar);
+	Counter a;
+	QObject::connect(&a,SIGNAL(setValue(50)),&ui_.progressBar,SLOT(setValue(50)));
+	battery = nav_msg.batteryPercent;
+	ui_.label_drone_altitude->setText( QString::number(nav_msg.altd)+" mm" );
+
+	switch(nav_msg.state){
+		case 1: ui_.label_drone_state->setText("Inited"); break;
+		case 2: ui_.label_drone_state->setText("Landed"); break;
+		case 3:
+		case 7: ui_.label_drone_state->setText("Flying"); break;
+		case 4: ui_.label_drone_state->setText("Hovering"); break;
+		case 5: ui_.label_drone_state->setText("Test"); break;
+		case 6: ui_.label_drone_state->setText("Taking off"); break;
+		case 8: ui_.label_drone_state->setText("Landing"); break;
+		case 9: ui_.label_drone_state->setText("Looping"); break;
+		case 0:
+		default : ui_.label_drone_state->setText("Unknown"); break;
+	}
+	
+	// NAVIGATION DATA:
+	//ui_.label_drone_altitude->setText( QString::number(nav_msg.altd)+"mm" );
+	//ui_.label_->setText(QString::number(nav_msg.));
+	ui_.label_bat->setText(QString::number(nav_msg.batteryPercent)+"%");
+	ui_.label_state->setText(QString::number(nav_msg.state));
+	ui_.label_alt->setText(QString::number(nav_msg.altd)+"mm");
+	ui_.label_rotate_x->setText(QString::number(nav_msg.rotX, 'f', 4));
+	ui_.label_rotate_y->setText(QString::number(nav_msg.rotY, 'f', 4));
+	ui_.label_rotate_z->setText(QString::number(nav_msg.rotZ, 'f', 4));
+	ui_.label_magnet_x->setText(QString::number(nav_msg.magX));
+	ui_.label_magnet_y->setText(QString::number(nav_msg.magY));
+	ui_.label_magnet_z->setText(QString::number(nav_msg.magZ));
+	ui_.label_pressure->setText(QString::number(nav_msg.pressure));
+	ui_.label_temp->setText(QString::number(nav_msg.temp));
+	ui_.label_wind_speed->setText(QString::number(nav_msg.wind_speed, 'f', 4));
+	ui_.label_wind_angle->setText(QString::number(nav_msg.wind_angle, 'f', 4));
+	ui_.label_wind_comp->setText(QString::number(nav_msg.wind_comp_angle, 'f', 4));
+	ui_.label_linvel_x->setText(QString::number(nav_msg.vx, 'f', 4));
+	ui_.label_linvel_y->setText(QString::number(nav_msg.vy, 'f', 4));
+	ui_.label_linvel_z->setText(QString::number(nav_msg.vz, 'f', 4));
+	ui_.label_linacc_x->setText(QString::number(nav_msg.ax, 'f', 4));
+	ui_.label_linacc_y->setText(QString::number(nav_msg.ay, 'f', 4));
+	ui_.label_linacc_z->setText(QString::number(nav_msg.az, 'f', 4));
+	ui_.label_motor_1->setText(QString::number(nav_msg.motor1));
+	ui_.label_motor_2->setText(QString::number(nav_msg.motor2));
+	ui_.label_motor_3->setText(QString::number(nav_msg.motor3));
+	ui_.label_motor_4->setText(QString::number(nav_msg.motor4));
+}
+
+// joy:
+
+void MyPlugin::joy_callback(const sensor_msgs::Joy::ConstPtr& joy){
+	// call back funkcija za joy-stik
+	//ui_.label_joy->setText("jupej");
+//	MyPlugin::test("joy");
+	//MyPlugin::drone_emergency();
+	
+	if(ui_.radioB_tumAP->isChecked()){
+		clickResetButton();
+		ui_.radioB_onlyJ->setChecked(true);
+		radioB_joy();
+	}
+	
+	pitch_y = axes_scale * (float)joy->axes[1];
+	roll_x = axes_scale * (float)joy->axes[0];
+	yaw_z = axes_scale * (float)joy->axes[3];
+	hight_z = axes_scale * (float)joy->axes[4];
+	
+	if(pitch_y > axes_max) pitch_y = axes_max;
+	else if(pitch_y < -axes_max) pitch_y = -axes_max;
+	if(roll_x > axes_max) roll_x = axes_max;
+	else if(roll_x < -axes_max) roll_x = -axes_max;
+	if(yaw_z > axes_max) yaw_z = axes_max;
+	else if(yaw_z < -axes_max) yaw_z = -axes_max;
+	if(hight_z > axes_max) hight_z = axes_max;
+	else if(hight_z < -axes_max) hight_z = -axes_max;
+	
+	last_send_vel.linear.x = pitch_y;
+	last_send_vel.linear.y = roll_x;
+	last_send_vel.linear.z = hight_z;
+	last_send_vel.angular.z = yaw_z;
+	
+	last_send_vel.angular.x = 0.0;
+	last_send_vel.angular.y = 0.0;
+	
+	ui_.label_pitch_y->setText( QString::number(pitch_y,'f', 4) );
+	ui_.label_roll_x->setText( QString::number(roll_x,'f', 4) );
+	ui_.label_yaw_z->setText( QString::number(yaw_z,'f', 4) );
+	ui_.label_hight_z->setText( QString::number(hight_z,'f', 4) );
+	
+	// gamepad f510
+	if(joy->buttons[0] == 1){
+		// gumb: A
+		// efekt: emergency
+		drone_emergency();
+	}
+	else if(joy->buttons[6] == 1){
+		// gumb: back
+		// efekt: land
+		drone_land();
+	}
+	else if(joy->buttons[7] == 1){
+		// gumb: start
+		// efekt: take off
+		drone_take_off();
+	}
+	if(joy->buttons[1] == 1){
+		// prednja kamera
+		camera_select(0);
+	}
+	else if(joy->buttons[2] == 1){
+		// spodnja kamera
+		camera_select(1);
+	}
+/*	if(joy->buttons[] == 1){
+	
+	}
+*/
+	
+}
+
+//-------------
+
+void MyPlugin::drone_take_off(){
+	// koda za vzlet: pošlje se sporočilo tipa std_msgs/Empty
+	std_msgs::Empty msg;
+	pub_take_off.publish(msg);
+	MyPlugin::test("Take off drone.");
+}
+
+void MyPlugin::drone_land(){
+	//koda za pristanek: pošlje se sporočilo tipa std_msgs/Empty
+	std_msgs::Empty msg;
+	pub_land.publish(msg);
+	MyPlugin::test("Land drone.");
+}
+
+void MyPlugin::drone_emergency(){
+	// koda za pristanek v sili (mottors off): pošlje se sporočilo tipa std_msgs/Empty
+	std_msgs::Empty msg;
+	pub_emergency.publish(msg);
+	MyPlugin::test("Emergency off.");
+}
+
+void MyPlugin::publish_vel(){
+	joy_vel_.publish(last_send_vel);
+}
+
+void MyPlugin::camera_select(char cam){
+	//if(cam != cam_sel){
+		ardrone_autonomy::CamSelect new_cam;
+		new_cam.request.channel = cam;
+/*		if( cam_client.call(new_cam) ) cam_sel=cam;
+		*/
+		if( ros::service::call("ardrone/setcamchannel", new_cam) ) cam_sel=cam;
+	//}
+	switch(cam){
+		case 0: test("Selected front camera."); break;
+		case 1: test("Selected bottom camera."); break;
+	}
+}
+
+//------------------------------------------------------------------------------
+
+void MyPlugin::timerEvent(QTimerEvent *event){
+	//ui_.label_joy->setText("ros spin...");
+	ros::spinOnce();
+	//ui_.label_joy->setText("timer");
+	if(topics_ok == 1) publish_vel();
+	//ui_.progressBar->setValue(battery);
+}
+
+void MyPlugin::spinbox_changed(double vrednost){
+	//ui_.label_joy->setText("box_1");
+	axes_max = (float)vrednost;
+}
+
+void MyPlugin::spinbox2_changed(double vrednost){
+	//ui_.label_joy->setText("box_2");
+	axes_scale = (float)vrednost;
+}
+
+/*
+void MyPlugin::clickoff(){
+	//test
+}
+*/
+
+//****
+
+//****
+
+/*bool hasConfiguration() const
+{
+  return true;
+}
+
+void triggerConfiguration()
+{
+  // Usually used to open a dialog to offer the user a set of configuration
+}*/
+
+} // namespace
+//PLUGINLIB_DECLARE_CLASS(my_namespace, MyPlugin, my_namespace::MyPlugin, rqt_gui_cpp::Plugin)
+PLUGINLIB_EXPORT_CLASS(my_namespace::MyPlugin, rqt_gui_cpp::Plugin)

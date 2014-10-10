@@ -1,0 +1,4 @@
+c moveBy [doube x] [double y] [double z] [double yaw]
+
+moves by (x,y,z,yaw), relative to the current target position.
+blocks until target is reached according to set parameters

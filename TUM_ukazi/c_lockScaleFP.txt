@@ -1,0 +1,4 @@
+c lockScaleFP
+
+sets the one point that does not change when the scale is re-estimated to the current drone position. The scaleFP can only be set when PTAM is good, i.e. this is delayed until PTAM is initialized and good.
+Need to set useWorldFixpoint in dynammic_reconfigure.

@@ -1,0 +1,4 @@
+c moveByRel [doube x] [double y] [double z] [double yaw]
+
+moves by (x,y,z,yaw), relative to the current estimated position of the drone.
+blocks until target is reached according to set parameters

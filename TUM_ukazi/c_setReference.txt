@@ -1,0 +1,3 @@
+c setReference [doube x] [double y] [double z] [double yaw]
+
+sets reference point (used in goto X X X X).

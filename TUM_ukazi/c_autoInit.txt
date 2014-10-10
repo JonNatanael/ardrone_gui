@@ -1,0 +1,6 @@
+c autoInit [int moveTimeMS] [int waitTimeMS] [int riseTimeMs] [float initSpeed]
+
+takes control, starts drone, initializes PTAM. That is:
+ - starts the drone & and waits riseTimeMs, the drone will rise to approx. a height of 1m. 
+ - initializes PTAM by taking the first KF, flying up (sending initSpeed as control command) for moveTimeMS, waiting waitTimeMS and then taking the second KF. This is done until success (flying up and down respectively).
+ - good default values are "autoInit 500 800 4000 0.5" 

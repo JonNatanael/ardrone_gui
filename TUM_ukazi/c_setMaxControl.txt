@@ -1,0 +1,3 @@
+c setMaxControl [double cap = 1.0]
+
+maximal control sent is capped at [cap], causing the drone to fly slower.
