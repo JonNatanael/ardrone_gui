@@ -133,7 +133,7 @@ private:
   
 };
 
-class Counter : public QObject
+/*class Counter : public QObject
 {
     Q_OBJECT
     int m_value;
@@ -143,7 +143,7 @@ public slots:
     void setValue(int value);
 signals:
     void setValue(int newValue);
-};
+};*/
 
 } // namespace
 #endif // my_namespace__my_plugin_H

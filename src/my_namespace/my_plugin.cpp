@@ -235,8 +235,9 @@ void MyPlugin::comboBoxCommand(QString str){
 	test(str);
 	//odpri datoteko in prikaži še info o izbranem ukazu...
 	str.replace(QString(" "), QString("_"));
-	test(str);
-	QString fileName = QString("/home/jon/Desktop/catkin_ws/src/rqt_mypkg/TUM_ukazi/") + str + QString(".txt");
+
+	//QString fileName = QString("/home/jon/Desktop/catkin_ws/src/rqt_mypkg/TUM_ukazi/") + str + QString(".txt");
+	QString fileName = QString("/home/jon/Documents/catkin_ws/src/rqt_mypkg/TUM_ukazi/") + str + QString(".txt");
 	if(!fileName.isEmpty()){
 		QFile file(fileName);
 		if(!file.open(QIODevice::ReadOnly)){
@@ -284,8 +285,8 @@ void MyPlugin::navdata_callback(const ardrone_autonomy::Navdata& nav_msg){
 	//KRMILJENJE:
 	//ui_.progressBar->setValue(nav_msg.batteryPercent); // tole ni varno tu klicati, pogruntaj nekaj drugega
 	//test(ui_.progressBar);
-	Counter a;
-	QObject::connect(&a,SIGNAL(setValue(50)),&ui_.progressBar,SLOT(setValue(50)));
+	//Counter a;
+	//QObject::connect(&a,SIGNAL(setValue(50)),&ui_.progressBar,SLOT(setValue(50)));
 	battery = nav_msg.batteryPercent;
 	ui_.label_drone_altitude->setText( QString::number(nav_msg.altd)+" mm" );
 
