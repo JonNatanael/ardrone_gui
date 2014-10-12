@@ -1,6 +1,7 @@
 #include <my_namespace/my_plugin.h>
 #include <pluginlib/class_list_macros.h>
 #include <QStringList>
+#include <QObject>
 //#include <ros/publisher.h>
 //#include <ros/subscriber.h>
 //#include <ros/ros.h>
@@ -57,6 +58,9 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   connect( ui_.radioB_jAndAuto, SIGNAL(pressed()),			this, SLOT(radioB_joyAndAuto())			);
   
 //  connect(ui_.emergency_off_b, SIGNAL(pressed()), this, SLOT(clickoff()));
+
+//**** battery status update
+connect(&battUpdate, SIGNAL(valueChanged(int)), ui_.progressBar, SLOT(setValue(int)));
   
   // publishers:
   // 
@@ -108,7 +112,7 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
 			<< "c stop";
 	ui_.comboBox_commands->addItems(TumList);
 	
-	battery = 0;
+	battery = 100;
 	startTimer(25);
 }
 
@@ -170,8 +174,12 @@ void MyPlugin::clickCameraBottom(){
 }
 
 void MyPlugin::clickAutoLand(){
+	//emit test signal	
+	battUpdate.setValue(5);
 	test("Ni se implementirano.");
 }
+
+
   
 //-- radio buttons
 void MyPlugin::radioB_joy(){
@@ -236,6 +244,7 @@ void MyPlugin::comboBoxCommand(QString str){
 	//odpri datoteko in prikaži še info o izbranem ukazu...
 	str.replace(QString(" "), QString("_"));
 
+	// spremeni v nekaj relativnega
 	//QString fileName = QString("/home/jon/Desktop/catkin_ws/src/rqt_mypkg/TUM_ukazi/") + str + QString(".txt");
 	QString fileName = QString("/home/jon/Documents/catkin_ws/src/rqt_mypkg/TUM_ukazi/") + str + QString(".txt");
 	if(!fileName.isEmpty()){
@@ -284,9 +293,8 @@ void MyPlugin::navdata_callback(const ardrone_autonomy::Navdata& nav_msg){
     
 	//KRMILJENJE:
 	//ui_.progressBar->setValue(nav_msg.batteryPercent); // tole ni varno tu klicati, pogruntaj nekaj drugega
-	//test(ui_.progressBar);
-	//Counter a;
-	//QObject::connect(&a,SIGNAL(setValue(50)),&ui_.progressBar,SLOT(setValue(50)));
+	battUpdate.setValue(nav_msg.batteryPercent);
+
 	battery = nav_msg.batteryPercent;
 	ui_.label_drone_altitude->setText( QString::number(nav_msg.altd)+" mm" );
 
@@ -464,6 +472,12 @@ void MyPlugin::spinbox_changed(double vrednost){
 void MyPlugin::spinbox2_changed(double vrednost){
 	//ui_.label_joy->setText("box_2");
 	axes_scale = (float)vrednost;
+}
+
+// battery state signal emitter
+void batterySignal::setValue(int value)
+{
+	emit valueChanged(value);
 }
 
 /*

@@ -34,6 +34,26 @@
 
 namespace my_namespace {
 
+class batterySignal : public QObject
+ {
+     Q_OBJECT
+
+ public:
+     batterySignal() { m_value = 100; }
+
+     int value() const { return m_value; }
+
+ public slots:
+ 	void setValue(int value);
+
+ signals:
+     void valueChanged(int newValue);
+
+ private:
+     int m_value;
+
+ };
+
 class MyPlugin : public rqt_gui_cpp::Plugin
 {
   Q_OBJECT
@@ -125,6 +145,7 @@ private:
   float yaw_z;
   float hight_z;
   int battery;
+  batterySignal battUpdate;
   
   char cam_sel;		// selected camera [0,1]
   int topics_ok;
@@ -133,17 +154,6 @@ private:
   
 };
 
-/*class Counter : public QObject
-{
-    Q_OBJECT
-    int m_value;
-public:
-    int value() const { return m_value; }
-public slots:
-    void setValue(int value);
-signals:
-    void setValue(int newValue);
-};*/
 
 } // namespace
 #endif // my_namespace__my_plugin_H
