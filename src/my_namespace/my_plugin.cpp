@@ -114,6 +114,7 @@ connect(&battUpdate, SIGNAL(valueChanged(int)), ui_.progressBar, SLOT(setValue(i
 	
 	battery = 100;
 	startTimer(25);
+	state = 2;
 }
 
 void MyPlugin::shutdownPlugin()
@@ -174,11 +175,8 @@ void MyPlugin::clickCameraBottom(){
 }
 
 void MyPlugin::clickAutoLand(){
-	//emit test signal	
-	battUpdate.setValue(5);
 	test("Ni se implementirano.");
 }
-
 
   
 //-- radio buttons
@@ -244,7 +242,7 @@ void MyPlugin::comboBoxCommand(QString str){
 	//odpri datoteko in prikaži še info o izbranem ukazu...
 	str.replace(QString(" "), QString("_"));
 
-	// spremeni v nekaj relativnega
+	// predpostavlja, da se GUI zažene v direktoriju catkin_ws
 	QString fileName = QString(QDir::currentPath()+"/src/ardrone_gui/TUM_ukazi/" + str + QString(".txt"));
 	if(!fileName.isEmpty()){
 		QFile file(fileName);
@@ -298,7 +296,7 @@ void MyPlugin::navdata_callback(const ardrone_autonomy::Navdata& nav_msg){
 	state = nav_msg.state;
 	ui_.label_drone_altitude->setText( QString::number(nav_msg.altd)+" mm" );
 	
-	//predpostavi se, da drone ob inicializaciji plugina ni v emergency stanju
+	// ob zagonu se predpostavi stanje 2
 
 	switch(state){
 		case 1: ui_.label_drone_state->setText("Inited"); break;
@@ -385,6 +383,7 @@ void MyPlugin::joy_callback(const sensor_msgs::Joy::ConstPtr& joy){
 	ui_.label_hight_z->setText( QString::number(hight_z,'f', 4) );
 	
 	// gamepad f510
+
 	// 0
 	if(joy->buttons[0] == 1){
 		// gumb: A
@@ -541,7 +540,6 @@ void MyPlugin::joy_callback(const sensor_msgs::Joy::ConstPtr& joy){
 		ui_.ar_right->setText("Off");
 	}
 	// up-down
-	// left-right
 	if(joy->axes[3] == 1){
 		ui_.ar_up->setText("On");
 	}
@@ -560,30 +558,29 @@ void MyPlugin::drone_take_off(){
 	// koda za vzlet: pošlje se sporočilo tipa std_msgs/Empty
 	std_msgs::Empty msg;
 	pub_take_off.publish(msg);
-	MyPlugin::test("Take off drone.");
+	test("Take off drone.");
 }
 
 void MyPlugin::drone_land(){
 	//koda za pristanek: pošlje se sporočilo tipa std_msgs/Empty
 	std_msgs::Empty msg;
 	pub_land.publish(msg);
-	//MyPlugin::test("Land drone.");
-
+	test("Land drone.");
 }
 
 void MyPlugin::drone_emergency(){
-	// koda za pristanek v sili (mottors off): pošlje se sporočilo tipa std_msgs/Empty
+	// koda za pristanek v sili (motors off): pošlje se sporočilo tipa std_msgs/Empty
 	std_msgs::Empty msg;
 	pub_emergency.publish(msg);
 	if (state == 0){
-		MyPlugin::test("Emergency off.");
+		test("Emergency off.");
+		state = 1; // default, kadar ni povezave
 		//ui_.emergency_off_b->setText(QString::number(state));
 	}
 	else {
-		MyPlugin::test("Emergency on.");
+		test("Emergency on.");
+		state = 0; // default, kadar ni povezave
 	}	
-	//MyPlugin::test("Emergency off.");
-	//ui_.emergency_off_b->setText(QString::number(state));
 }
 
 void MyPlugin::publish_vel(){

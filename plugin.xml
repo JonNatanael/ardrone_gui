@@ -1,13 +1,13 @@
 <!-- <library path="src">
 -->
-<library path="lib/librqt_mypkg">
+<library path="lib/libardrone_gui">
 <!--
   <class name="rqt_mypkg/MyPlugin" type="rqt_mypkg::MyPlugin" base_class_type="rqt_gui_cpp::Plugin">
 -->
 <!--
   <class name="My Plugin" type="rqt_mypkg.my_module.MyPlugin" base_class_type="rqt_gui_cpp::Plugin">
 -->
-<class name="rqt_mypkg/MyPlugin" type="my_namespace::MyPlugin" base_class_type="rqt_gui_cpp::Plugin">
+<class name="ardrone_gui/MyPlugin" type="my_namespace::MyPlugin" base_class_type="rqt_gui_cpp::Plugin">
     <description>
 	AR Drone GUI
     </description>

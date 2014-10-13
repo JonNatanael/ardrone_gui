@@ -3,7 +3,7 @@
 #
 
 cmake_minimum_required(VERSION 2.8.3)
-project(rqt_mypkg)
+project(ardrone_gui)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -130,7 +130,7 @@ LINK_DIRECTORIES(/usr/lib/i386-linux-gnu)
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(rqt_mypkg ${catkin_LIBRARIES} )
 target_link_libraries(
-  rqt_mypkg
+  ardrone_gui
   ${catkin_LIBRARIES} 
   ${QT_QTCORE_LIBRARY} 
   ${QT_QTGUI_LIBRARY} 
@@ -142,7 +142,7 @@ target_link_libraries(
   
 target_link_libraries(
 #  mypkg
-  rqt_mypkg   
+  ardrone_gui  
   )
   
   find_package(class_loader)
@@ -163,7 +163,7 @@ install(FILES
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
  install(PROGRAMS
-   scripts/rqt_mypkg
+   scripts/ardrone_gui
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )
 
