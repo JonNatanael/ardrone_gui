@@ -386,34 +386,173 @@ void MyPlugin::joy_callback(const sensor_msgs::Joy::ConstPtr& joy){
 	ui_.label_hight_z->setText( QString::number(hight_z,'f', 4) );
 	
 	// gamepad f510
+	// 0
 	if(joy->buttons[0] == 1){
 		// gumb: A
 		// efekt: emergency
+		ui_.btn_0->setText("On");
 		drone_emergency();
 	}
-	else if(joy->buttons[6] == 1){
-		// gumb: back
-		// efekt: land
-		drone_land();
+	else if(joy->buttons[0] == 0){
+		ui_.btn_0->setText("Off");
 	}
-	else if(joy->buttons[7] == 1){
-		// gumb: start
-		// efekt: take off
-		drone_take_off();
-	}
+
+	// 1
 	if(joy->buttons[1] == 1){
 		// prednja kamera
+		ui_.btn_1->setText("On");
 		camera_select(0);
 	}
-	else if(joy->buttons[2] == 1){
+	else if(joy->buttons[1] == 0){
+		ui_.btn_1->setText("Off");
+	}
+
+	// 2
+	if(joy->buttons[2] == 1){
 		// spodnja kamera
+		ui_.btn_2->setText("On");
 		camera_select(1);
 	}
-/*	if(joy->buttons[] == 1){
-	
+	else if(joy->buttons[2] == 0){
+		ui_.btn_2->setText("Off");
 	}
-*/
+
+	// 3
+	if(joy->buttons[3] == 1){
+		ui_.btn_3->setText("On");
+	}
+	else if(joy->buttons[3] == 0){
+		ui_.btn_3->setText("Off");
+	}
+
+	// 4
+	if(joy->buttons[4] == 1){
+		ui_.lt_1->setText("On");
+	}
+	else if(joy->buttons[4] == 0){
+		ui_.lt_1->setText("Off");
+	}
+
+	// 5
+	if(joy->buttons[5] == 1){
+		ui_.rt_1->setText("On");
+	}
+	else if(joy->buttons[5] == 0){
+		ui_.rt_1->setText("Off");
+	}
+
+	// 6
+	if(joy->buttons[6] == 1){
+		// gumb: back
+		// efekt: land
+		//drone_land();
+		ui_.lt_2->setText("On");
+	}
+	else if(joy->buttons[6] == 0){
+		ui_.lt_2->setText("Off");
+	}
+
+	// 7
+	if(joy->buttons[7] == 1){
+		// gumb: start
+		// efekt: take off
+		//drone_take_off();
+		ui_.rt_2->setText("On");
+	}
+	else if(joy->buttons[7] == 0){
+		ui_.rt_2->setText("Off");
+	}
+
+	// 8
+	if(joy->buttons[8] == 1){
+		//ui_.lt_2->setText("On");
+	}
+	else if(joy->buttons[8] == 0){
+		//ui_.lt_2->setText("Off");
+	}
+
+	// 9
+	if(joy->buttons[9] == 1){
+		//ui_.lt_2->setText("On");
+	}
+	else if(joy->buttons[9] == 0){
+		//ui_.lt_2->setText("Off");
+	}	
 	
+	// krizec
+	// left-right
+	if(joy->axes[0] == 1){
+		ui_.btn_left->setText("On");
+	}
+	else if(joy->axes[0] == -1){
+		ui_.btn_right->setText("On");
+	}
+	else {
+		ui_.btn_left->setText("Off");
+		ui_.btn_right->setText("Off");
+	}
+
+	// up-down
+	if(joy->axes[1] == 1){
+		ui_.btn_up->setText("On");
+	}
+	else if(joy->axes[1] == -1){
+		ui_.btn_down->setText("On");
+	}
+	else {
+		ui_.btn_up->setText("Off");
+		ui_.btn_down->setText("Off");
+	}
+
+	// left analog
+	// left-right
+	if(joy->axes[4] == 1){
+		ui_.al_left->setText("On");
+	}
+	else if(joy->axes[4] == -1){
+		ui_.al_right->setText("On");
+	}
+	else {
+		ui_.al_left->setText("Off");
+		ui_.al_right->setText("Off");
+	}
+	// up-down
+	// left-right
+	if(joy->axes[5] == 1){
+		ui_.al_up->setText("On");
+	}
+	else if(joy->axes[5] == -1){
+		ui_.al_down->setText("On");
+	}
+	else {
+		ui_.al_up->setText("Off");
+		ui_.al_down->setText("Off");
+	}
+
+	// right analog
+	// left-right
+	if(joy->axes[2] == 1){
+		ui_.ar_left->setText("On");
+	}
+	else if(joy->axes[2] == -1){
+		ui_.ar_right->setText("On");
+	}
+	else {
+		ui_.ar_left->setText("Off");
+		ui_.ar_right->setText("Off");
+	}
+	// up-down
+	// left-right
+	if(joy->axes[3] == 1){
+		ui_.ar_up->setText("On");
+	}
+	else if(joy->axes[3] == -1){
+		ui_.ar_down->setText("On");
+	}
+	else {
+		ui_.ar_up->setText("Off");
+		ui_.ar_down->setText("Off");
+	}
 }
 
 //-------------
