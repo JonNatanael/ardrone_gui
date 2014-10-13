@@ -245,8 +245,7 @@ void MyPlugin::comboBoxCommand(QString str){
 	str.replace(QString(" "), QString("_"));
 
 	// spremeni v nekaj relativnega
-	QString fileName = QString("/home/jon/Desktop/catkin_ws/src/rqt_mypkg/TUM_ukazi/") + str + QString(".txt");
-	//QString fileName = QString("/home/jon/Documents/catkin_ws/src/rqt_mypkg/TUM_ukazi/") + str + QString(".txt");
+	QString fileName = QString(QDir::currentPath()+"/src/ardrone_gui/TUM_ukazi/" + str + QString(".txt"));
 	if(!fileName.isEmpty()){
 		QFile file(fileName);
 		if(!file.open(QIODevice::ReadOnly)){
@@ -568,7 +567,8 @@ void MyPlugin::drone_land(){
 	//koda za pristanek: pošlje se sporočilo tipa std_msgs/Empty
 	std_msgs::Empty msg;
 	pub_land.publish(msg);
-	MyPlugin::test("Land drone.");
+	//MyPlugin::test("Land drone.");
+
 }
 
 void MyPlugin::drone_emergency(){
