@@ -39,7 +39,7 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   //****  krmiljenje:
   connect( ui_.take_off_b, 		SIGNAL(pressed()), 				this, SLOT(click_take_off_button())		);
   connect( ui_.land_b, 			SIGNAL(pressed()), 				this, SLOT(click_land_button())			);
-  connect( ui_.emergency_off_b, SIGNAL(pressed()), 				this, SLOT(click_emergency_off_button()));
+  connect( ui_.emergency_off_b, SIGNAL(toggled(bool)), 				this, SLOT(click_emergency_off_button()));
   connect( ui_.doubleSpinBox, 	SIGNAL(valueChanged(double)), 	this, SLOT(spinbox_changed(double)) 	);
   connect( ui_.doubleSpinBox_2, SIGNAL(valueChanged(double)), 	this, SLOT(spinbox2_changed(double)) 	);
   connect( ui_.set_front_cam_b, SIGNAL(pressed()),				this, SLOT(clickCameraFront())			);
@@ -245,8 +245,8 @@ void MyPlugin::comboBoxCommand(QString str){
 	str.replace(QString(" "), QString("_"));
 
 	// spremeni v nekaj relativnega
-	//QString fileName = QString("/home/jon/Desktop/catkin_ws/src/rqt_mypkg/TUM_ukazi/") + str + QString(".txt");
-	QString fileName = QString("/home/jon/Documents/catkin_ws/src/rqt_mypkg/TUM_ukazi/") + str + QString(".txt");
+	QString fileName = QString("/home/jon/Desktop/catkin_ws/src/rqt_mypkg/TUM_ukazi/") + str + QString(".txt");
+	//QString fileName = QString("/home/jon/Documents/catkin_ws/src/rqt_mypkg/TUM_ukazi/") + str + QString(".txt");
 	if(!fileName.isEmpty()){
 		QFile file(fileName);
 		if(!file.open(QIODevice::ReadOnly)){
@@ -296,9 +296,12 @@ void MyPlugin::navdata_callback(const ardrone_autonomy::Navdata& nav_msg){
 	battUpdate.setValue(nav_msg.batteryPercent);
 
 	battery = nav_msg.batteryPercent;
+	state = nav_msg.state;
 	ui_.label_drone_altitude->setText( QString::number(nav_msg.altd)+" mm" );
+	
+	//predpostavi se, da drone ob inicializaciji plugina ni v emergency stanju
 
-	switch(nav_msg.state){
+	switch(state){
 		case 1: ui_.label_drone_state->setText("Inited"); break;
 		case 2: ui_.label_drone_state->setText("Landed"); break;
 		case 3:
@@ -433,7 +436,15 @@ void MyPlugin::drone_emergency(){
 	// koda za pristanek v sili (mottors off): pošlje se sporočilo tipa std_msgs/Empty
 	std_msgs::Empty msg;
 	pub_emergency.publish(msg);
-	MyPlugin::test("Emergency off.");
+	if (state == 0){
+		MyPlugin::test("Emergency off.");
+		//ui_.emergency_off_b->setText(QString::number(state));
+	}
+	else {
+		MyPlugin::test("Emergency on.");
+	}	
+	//MyPlugin::test("Emergency off.");
+	//ui_.emergency_off_b->setText(QString::number(state));
 }
 
 void MyPlugin::publish_vel(){

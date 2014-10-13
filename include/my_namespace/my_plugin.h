@@ -145,6 +145,7 @@ private:
   float yaw_z;
   float hight_z;
   int battery;
+  int state;
   batterySignal battUpdate;
   
   char cam_sel;		// selected camera [0,1]

@@ -439,8 +439,17 @@
        <height>41</height>
       </rect>
      </property>
+     <property name="styleSheet">
+      <string notr="true">:checked{
+	/*background-color: #888;*/
+	color: #F00;
+}</string>
+     </property>
      <property name="text">
-      <string>Emergency off</string>
+      <string>Emergency</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
      </property>
     </widget>
     <widget class="QGroupBox" name="groupBox_10">
