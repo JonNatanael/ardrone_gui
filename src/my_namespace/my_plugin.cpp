@@ -92,6 +92,32 @@ connect(&battUpdate, SIGNAL(valueChanged(int)), ui_.progressBar, SLOT(setValue(i
 	camera_select(0);
 	
 	topics_ok = 1;
+
+	// command list
+	buttonList
+	<< "button 0"
+	<< "button 1"
+	<< "button 2"
+	<< "button 3"
+	<< "l-trigger 1"
+	<< "l-trigger 2"
+	<< "r-trigger 1"
+	<< "r-trigger 2"
+	<< "cross up-down"
+	<< "cross left-right"
+	<< "l-stick up-down"
+	<< "r-stick left-right"
+	<< "l-stick up-down"
+	<< "r-stick left-right";
+
+	ui_.comboBox_mapping_0->addItems(buttonList);
+	ui_.comboBox_mapping_1->addItems(buttonList);
+	ui_.comboBox_mapping_2->addItems(buttonList);
+	ui_.comboBox_mapping_3->addItems(buttonList);
+	ui_.comboBox_mapping_4->addItems(buttonList);
+	ui_.comboBox_mapping_5->addItems(buttonList);
+	ui_.comboBox_mapping_6->addItems(buttonList);
+	ui_.comboBox_mapping_7->addItems(buttonList);
 	
 	//Tum combobox:
 	TumList  << "c autoInit"
@@ -110,6 +136,7 @@ connect(&battUpdate, SIGNAL(valueChanged(int)), ui_.progressBar, SLOT(setValue(i
 			<< "c setStayTime"
 			<< "c start"
 			<< "c stop";
+
 	ui_.comboBox_commands->addItems(TumList);
 	
 	battery = 100;
@@ -355,6 +382,7 @@ void MyPlugin::joy_callback(const sensor_msgs::Joy::ConstPtr& joy){
 		radioB_joy();
 	}
 	
+	// scale and limit axes commands
 	pitch_y = axes_scale * (float)joy->axes[1];
 	roll_x = axes_scale * (float)joy->axes[0];
 	yaw_z = axes_scale * (float)joy->axes[3];
@@ -369,6 +397,7 @@ void MyPlugin::joy_callback(const sensor_msgs::Joy::ConstPtr& joy){
 	if(hight_z > axes_max) hight_z = axes_max;
 	else if(hight_z < -axes_max) hight_z = -axes_max;
 	
+	// send axes commands
 	last_send_vel.linear.x = pitch_y;
 	last_send_vel.linear.y = roll_x;
 	last_send_vel.linear.z = hight_z;

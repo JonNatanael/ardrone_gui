@@ -152,6 +152,7 @@ private:
   int topics_ok;
   
   QStringList TumList; // vsebuje stringe/imena ukazov
+  QStringList buttonList; // vsebuje imena gumbov za mapiranje na joypad
   
 };
 
