@@ -136,7 +136,7 @@ private:
   ros::NodeHandle n_joy;
   geometry_msgs::Twist last_send_vel;
   
-  ardrone_autonomy::Navdata navdata_msg;
+  //ardrone_autonomy::Navdata navdata_msg;
   
   float axes_max;
   float axes_scale;
@@ -147,12 +147,16 @@ private:
   int battery;
   int state;
   batterySignal battUpdate;
+
+  // button mapping variables
+	
   
   char cam_sel;		// selected camera [0,1]
   int topics_ok;
   
   QStringList TumList; // vsebuje stringe/imena ukazov
-  QStringList buttonList; // vsebuje imena gumbov za mapiranje na joypad
+  QStringList buttonListSingle; // vsebuje imena gumbov za mapiranje na joypad
+  QStringList buttonListAxis; // vsebuje imena gumbov za mapiranje na joypad
   
 };
 

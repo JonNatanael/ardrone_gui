@@ -2,6 +2,8 @@
 #include <pluginlib/class_list_macros.h>
 #include <QStringList>
 #include <QObject>
+#include <QMetaObject>
+#include <Qt>
 //#include <ros/publisher.h>
 //#include <ros/subscriber.h>
 //#include <ros/ros.h>
@@ -72,7 +74,7 @@ connect(&battUpdate, SIGNAL(valueChanged(int)), ui_.progressBar, SLOT(setValue(i
 //	cam_client = n_.serviceClient("ardrone/setcamchannel");
   
   //navdata sub:
-//  navdata_sub = n_.subscribe<ardrone_autonomy::Navdata,MyPlugin>("/ardrone/navdata", 1, &MyPlugin::navdata_callback, this);
+	//navdata_sub = n_.subscribe<ardrone_autonomy::Navdata,MyPlugin>("/ardrone/navdata", 1, &MyPlugin::navdata_callback, this);
 	navdata_sub = n_.subscribe("/ardrone/navdata", 1, &MyPlugin::navdata_callback, this);
   
   //joy:
@@ -94,7 +96,7 @@ connect(&battUpdate, SIGNAL(valueChanged(int)), ui_.progressBar, SLOT(setValue(i
 	topics_ok = 1;
 
 	// command list
-	buttonList
+	buttonListSingle
 	<< "button 0"
 	<< "button 1"
 	<< "button 2"
@@ -103,6 +105,12 @@ connect(&battUpdate, SIGNAL(valueChanged(int)), ui_.progressBar, SLOT(setValue(i
 	<< "l-trigger 2"
 	<< "r-trigger 1"
 	<< "r-trigger 2"
+	<< "cross up"
+	<< "cross down"
+	<< "cross left"
+	<< "cross right";
+
+	buttonListAxis
 	<< "cross up-down"
 	<< "cross left-right"
 	<< "l-stick up-down"
@@ -110,32 +118,33 @@ connect(&battUpdate, SIGNAL(valueChanged(int)), ui_.progressBar, SLOT(setValue(i
 	<< "l-stick up-down"
 	<< "r-stick left-right";
 
-	ui_.comboBox_mapping_0->addItems(buttonList);
-	ui_.comboBox_mapping_1->addItems(buttonList);
-	ui_.comboBox_mapping_2->addItems(buttonList);
-	ui_.comboBox_mapping_3->addItems(buttonList);
-	ui_.comboBox_mapping_4->addItems(buttonList);
-	ui_.comboBox_mapping_5->addItems(buttonList);
-	ui_.comboBox_mapping_6->addItems(buttonList);
-	ui_.comboBox_mapping_7->addItems(buttonList);
+	ui_.comboBox_mapping_0->addItems(buttonListSingle);
+	ui_.comboBox_mapping_1->addItems(buttonListSingle);
+	ui_.comboBox_mapping_2->addItems(buttonListSingle);
+	ui_.comboBox_mapping_3->addItems(buttonListSingle);
+	ui_.comboBox_mapping_4->addItems(buttonListAxis);
+	ui_.comboBox_mapping_5->addItems(buttonListAxis);
+	ui_.comboBox_mapping_6->addItems(buttonListAxis);
+	ui_.comboBox_mapping_7->addItems(buttonListAxis);
 	
 	//Tum combobox:
-	TumList  << "c autoInit"
-			<< "c autoTakeover"
-			<< "c clearCommands"
-			<< "c goto"
-			<< "c land"
-			<< "c lockScaleFP"
-			<< "c moveBy"
-			<< "c moveByRel"
-			<< "f reset"
-			<< "c setInitialReachDist"
-			<< "c setMaxControl"
-			<< "c setReference"
-			<< "c setStayWithinDist"
-			<< "c setStayTime"
-			<< "c start"
-			<< "c stop";
+	TumList
+	<< "c autoInit"
+	<< "c autoTakeover"
+	<< "c clearCommands"
+	<< "c goto"
+	<< "c land"
+	<< "c lockScaleFP"
+	<< "c moveBy"
+	<< "c moveByRel"
+	<< "f reset"
+	<< "c setInitialReachDist"
+	<< "c setMaxControl"
+	<< "c setReference"
+	<< "c setStayWithinDist"
+	<< "c setStayTime"
+	<< "c start"
+	<< "c stop";
 
 	ui_.comboBox_commands->addItems(TumList);
 	
@@ -184,6 +193,7 @@ void MyPlugin::click_take_off_button(){
 void MyPlugin::click_land_button(){
 	MyPlugin::drone_land();
 	test("Landing");
+	//std::cout<<"test\n";
 }
 
 void MyPlugin::click_emergency_off_button(){
@@ -306,73 +316,71 @@ void MyPlugin::openFileButton(){
 
 //-------------
 
-//void MyPlugin::test(std::string niz="jupej"){
 void MyPlugin::test(QString niz){
 	ui_.label_joy->setText(niz);
 }
 
 // navdata:
-void MyPlugin::navdata_callback(const ardrone_autonomy::Navdata& nav_msg){
-	//ui_.label_joy->setText(QString::number(nav_msg.batteryPercent, 'f', 4));
-    
+void MyPlugin::navdata_callback(const ardrone_autonomy::Navdata& nav_msg){  
 	//KRMILJENJE:
-	//ui_.progressBar->setValue(nav_msg.batteryPercent); // tole ni varno tu klicati, pogruntaj nekaj drugega
 	battUpdate.setValue(nav_msg.batteryPercent);
-
-	battery = nav_msg.batteryPercent;
 	state = nav_msg.state;
-	ui_.label_drone_altitude->setText( QString::number(nav_msg.altd)+" mm" );
-	
+
 	// ob zagonu se predpostavi stanje 2
+	// TODO fix this
 
 	switch(state){
-		case 1: ui_.label_drone_state->setText("Inited"); break;
-		case 2: ui_.label_drone_state->setText("Landed"); break;
+		case 1: QMetaObject::invokeMethod(ui_.label_drone_state, "setText", Qt::DirectConnection, Q_ARG(QString, "Inited")); break;
+		case 2: QMetaObject::invokeMethod(ui_.label_drone_state, "setText", Qt::DirectConnection, Q_ARG(QString, "Landed")); break;
 		case 3:
-		case 7: ui_.label_drone_state->setText("Flying"); break;
-		case 4: ui_.label_drone_state->setText("Hovering"); break;
-		case 5: ui_.label_drone_state->setText("Test"); break;
-		case 6: ui_.label_drone_state->setText("Taking off"); break;
-		case 8: ui_.label_drone_state->setText("Landing"); break;
-		case 9: ui_.label_drone_state->setText("Looping"); break;
-		case 0:
-		default : ui_.label_drone_state->setText("Unknown"); break;
+		case 7: QMetaObject::invokeMethod(ui_.label_drone_state, "setText", Qt::DirectConnection, Q_ARG(QString, "Flying")); break;
+		case 4: QMetaObject::invokeMethod(ui_.label_drone_state, "setText", Qt::DirectConnection, Q_ARG(QString, "Hovering")); break;
+		case 5: QMetaObject::invokeMethod(ui_.label_drone_state, "setText", Qt::DirectConnection, Q_ARG(QString, "Test")); break;
+		case 6: QMetaObject::invokeMethod(ui_.label_drone_state, "setText", Qt::DirectConnection, Q_ARG(QString, "Taking off")); break;
+		case 8: QMetaObject::invokeMethod(ui_.label_drone_state, "setText", Qt::DirectConnection, Q_ARG(QString, "Landing")); break;
+		case 9: QMetaObject::invokeMethod(ui_.label_drone_state, "setText", Qt::DirectConnection, Q_ARG(QString, "Looping")); break;
+		case 0: QMetaObject::invokeMethod(ui_.label_drone_state, "setText", Qt::DirectConnection, Q_ARG(QString, "Emergency")); break;
+		default : QMetaObject::invokeMethod(ui_.label_drone_state, "setText", Qt::DirectConnection, Q_ARG(QString, "Unknown")); break;
 	}
 	
 	// NAVIGATION DATA:
-	//ui_.label_drone_altitude->setText( QString::number(nav_msg.altd)+"mm" );
-	//ui_.label_->setText(QString::number(nav_msg.));
-	ui_.label_bat->setText(QString::number(nav_msg.batteryPercent)+"%");
-	ui_.label_state->setText(QString::number(nav_msg.state));
-	ui_.label_alt->setText(QString::number(nav_msg.altd)+"mm");
-	ui_.label_rotate_x->setText(QString::number(nav_msg.rotX, 'f', 4));
-	ui_.label_rotate_y->setText(QString::number(nav_msg.rotY, 'f', 4));
-	ui_.label_rotate_z->setText(QString::number(nav_msg.rotZ, 'f', 4));
-	ui_.label_magnet_x->setText(QString::number(nav_msg.magX));
-	ui_.label_magnet_y->setText(QString::number(nav_msg.magY));
-	ui_.label_magnet_z->setText(QString::number(nav_msg.magZ));
-	ui_.label_pressure->setText(QString::number(nav_msg.pressure));
-	ui_.label_temp->setText(QString::number(nav_msg.temp));
-	ui_.label_wind_speed->setText(QString::number(nav_msg.wind_speed, 'f', 4));
-	ui_.label_wind_angle->setText(QString::number(nav_msg.wind_angle, 'f', 4));
-	ui_.label_wind_comp->setText(QString::number(nav_msg.wind_comp_angle, 'f', 4));
-	ui_.label_linvel_x->setText(QString::number(nav_msg.vx, 'f', 4));
-	ui_.label_linvel_y->setText(QString::number(nav_msg.vy, 'f', 4));
-	ui_.label_linvel_z->setText(QString::number(nav_msg.vz, 'f', 4));
-	ui_.label_linacc_x->setText(QString::number(nav_msg.ax, 'f', 4));
-	ui_.label_linacc_y->setText(QString::number(nav_msg.ay, 'f', 4));
-	ui_.label_linacc_z->setText(QString::number(nav_msg.az, 'f', 4));
-	ui_.label_motor_1->setText(QString::number(nav_msg.motor1));
-	ui_.label_motor_2->setText(QString::number(nav_msg.motor2));
-	ui_.label_motor_3->setText(QString::number(nav_msg.motor3));
-	ui_.label_motor_4->setText(QString::number(nav_msg.motor4));
+	QMetaObject::invokeMethod(ui_.label_drone_altitude, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.altd)+" mm"));
+
+	// zaradi različnih threadov ne moremo direktno spreminjati label
+	//sprememba vsebine posamezne labele
+	//QMetaObject::invokeMethod(ui_.label_, "setText", Qt::QueuedConnection, Q_ARG(QString, <željeni niz>);
+	//std::cout << nav_msg << endl;
+	QMetaObject::invokeMethod(ui_.label_bat, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.batteryPercent)+"%"));
+	QMetaObject::invokeMethod(ui_.label_state, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.state)));
+	QMetaObject::invokeMethod(ui_.label_alt, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.altd)+" mm"));	
+	QMetaObject::invokeMethod(ui_.label_rotate_x, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.rotX, 'f', 4)));
+	QMetaObject::invokeMethod(ui_.label_rotate_y, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.rotY, 'f', 4)));
+	QMetaObject::invokeMethod(ui_.label_rotate_z, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.rotZ, 'f', 4)));
+	QMetaObject::invokeMethod(ui_.label_magnet_x, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.magX, 'f', 4)));
+	QMetaObject::invokeMethod(ui_.label_magnet_y, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.magY, 'f', 4)));
+	QMetaObject::invokeMethod(ui_.label_magnet_z, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.magZ, 'f', 4)));
+	QMetaObject::invokeMethod(ui_.label_pressure, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.pressure)));
+	QMetaObject::invokeMethod(ui_.label_pressure, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.pressure)));
+	QMetaObject::invokeMethod(ui_.label_temp, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.temp)));
+	QMetaObject::invokeMethod(ui_.label_wind_speed, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.wind_speed, 'f', 4)));
+	QMetaObject::invokeMethod(ui_.label_wind_angle, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.wind_angle, 'f', 4)));
+	QMetaObject::invokeMethod(ui_.label_wind_comp, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.wind_comp_angle, 'f', 4)));
+	QMetaObject::invokeMethod(ui_.label_linvel_x, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.vx, 'f', 4)));
+	QMetaObject::invokeMethod(ui_.label_linvel_y, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.vy, 'f', 4)));
+	QMetaObject::invokeMethod(ui_.label_linvel_z, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.vz, 'f', 4)));
+	QMetaObject::invokeMethod(ui_.label_linacc_x, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.ax, 'f', 4)));
+	QMetaObject::invokeMethod(ui_.label_linacc_y, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.ay, 'f', 4)));
+	QMetaObject::invokeMethod(ui_.label_linacc_z, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.az, 'f', 4)));
+	QMetaObject::invokeMethod(ui_.label_motor_1, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.motor1)));
+	QMetaObject::invokeMethod(ui_.label_motor_2, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.motor2)));
+	QMetaObject::invokeMethod(ui_.label_motor_3, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.motor3)));
+	QMetaObject::invokeMethod(ui_.label_motor_4, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(nav_msg.motor4)));
 }
 
 // joy:
 
 void MyPlugin::joy_callback(const sensor_msgs::Joy::ConstPtr& joy){
 	// call back funkcija za joy-stik
-	//ui_.label_joy->setText("jupej");
 //	MyPlugin::test("joy");
 	//MyPlugin::drone_emergency();
 	
@@ -602,12 +610,12 @@ void MyPlugin::drone_emergency(){
 	std_msgs::Empty msg;
 	pub_emergency.publish(msg);
 	if (state == 0){
-		test("Emergency off.");
+		//test("Emergency off.");
 		state = 1; // default, kadar ni povezave
 		//ui_.emergency_off_b->setText(QString::number(state));
 	}
 	else {
-		test("Emergency on.");
+		//test("Emergency on.");
 		state = 0; // default, kadar ni povezave
 	}	
 }

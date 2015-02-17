@@ -1,3 +1,3 @@
 c autoTakeover [int moveTimeMS] [int waitTimeMS] [int riseTimeMs] [float initSpeed]
 
-takes control, initializes PTAM. The same as autoInit ..., but to be used when the drone is already flying (skipps the first step).
+takes control, initializes PTAM. The same as autoInit ..., but to be used when the drone is already flying (skips the first step).
