@@ -22,7 +22,7 @@
       -->
       <label>Drone control GUI</label>
       <!--<icon type="theme">applications-other</icon>-->
-	<icon>parrot.png</icon>
+      <icon>parrot.png</icon>
       <statustip>AR Drone GUI</statustip>
     </qtgui>
   </class>

@@ -381,7 +381,7 @@ void MyPlugin::navdata_callback(const ardrone_autonomy::Navdata& nav_msg){
 
 void MyPlugin::joy_callback(const sensor_msgs::Joy::ConstPtr& joy){
 	// call back funkcija za joy-stik
-//	MyPlugin::test("joy");
+	//	MyPlugin::test("joy");
 	//MyPlugin::drone_emergency();
 	
 	if(ui_.radioB_tumAP->isChecked()){
@@ -394,7 +394,7 @@ void MyPlugin::joy_callback(const sensor_msgs::Joy::ConstPtr& joy){
 	pitch_y = axes_scale * (float)joy->axes[1];
 	roll_x = axes_scale * (float)joy->axes[0];
 	yaw_z = axes_scale * (float)joy->axes[3];
-	hight_z = axes_scale * (float)joy->axes[4];
+	height_z = axes_scale * (float)joy->axes[4];
 	
 	if(pitch_y > axes_max) pitch_y = axes_max;
 	else if(pitch_y < -axes_max) pitch_y = -axes_max;
@@ -402,22 +402,27 @@ void MyPlugin::joy_callback(const sensor_msgs::Joy::ConstPtr& joy){
 	else if(roll_x < -axes_max) roll_x = -axes_max;
 	if(yaw_z > axes_max) yaw_z = axes_max;
 	else if(yaw_z < -axes_max) yaw_z = -axes_max;
-	if(hight_z > axes_max) hight_z = axes_max;
-	else if(hight_z < -axes_max) hight_z = -axes_max;
+	if(height_z > axes_max) height_z = axes_max;
+	else if(height_z < -axes_max) height_z = -axes_max;
 	
 	// send axes commands
 	last_send_vel.linear.x = pitch_y;
 	last_send_vel.linear.y = roll_x;
-	last_send_vel.linear.z = hight_z;
+	last_send_vel.linear.z = height_z;
 	last_send_vel.angular.z = yaw_z;
 	
 	last_send_vel.angular.x = 0.0;
 	last_send_vel.angular.y = 0.0;
 	
-	ui_.label_pitch_y->setText( QString::number(pitch_y,'f', 4) );
+	/*ui_.label_pitch_y->setText( QString::number(pitch_y,'f', 4) );
 	ui_.label_roll_x->setText( QString::number(roll_x,'f', 4) );
 	ui_.label_yaw_z->setText( QString::number(yaw_z,'f', 4) );
-	ui_.label_hight_z->setText( QString::number(hight_z,'f', 4) );
+	ui_.label_hight_z->setText( QString::number(hight_z,'f', 4) );*/
+
+	QMetaObject::invokeMethod(ui_.label_pitch_y, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(pitch_y, 'f', 4)));
+	QMetaObject::invokeMethod(ui_.label_roll_x, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(roll_x, 'f', 4)));
+	QMetaObject::invokeMethod(ui_.label_yaw_z, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(yaw_z, 'f', 4)));
+	QMetaObject::invokeMethod(ui_.label_height_z, "setText", Qt::QueuedConnection, Q_ARG(QString, QString::number(height_z, 'f', 4)));
 	
 	// gamepad f510
 

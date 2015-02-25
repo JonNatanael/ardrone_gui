@@ -143,7 +143,7 @@ private:
   float pitch_y;
   float roll_x;
   float yaw_z;
-  float hight_z;
+  float height_z;
   int battery;
   int state;
   batterySignal battUpdate;
