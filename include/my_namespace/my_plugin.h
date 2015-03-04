@@ -9,6 +9,7 @@
 #include <ros/ros.h>
 #include "std_msgs/Empty.h"
 #include "std_msgs/String.h"
+#include "std_srvs/Empty.h"
 #include "geometry_msgs/Twist.h"
 #include "sensor_msgs/Joy.h"
 
@@ -29,8 +30,9 @@
 #include <QButtonGroup>
 
 //**** DRONE ****
-#include "ardrone_autonomy/Navdata.h"
+#include <ardrone_autonomy/Navdata.h>
 #include <ardrone_autonomy/CamSelect.h>
+#include <ardrone_autonomy/RecordEnable.h>
 
 namespace my_namespace {
 
@@ -75,6 +77,10 @@ protected slots:
   virtual void clickCameraFront();
   virtual void clickCameraBottom();
   virtual void clickAutoLand();
+  virtual void clickIMUCalib();
+  virtual void clickFlatTrim();
+  virtual void clickUSBRecordStart();
+  virtual void clickUSBRecordStop();
   // + checkbox
   
   
@@ -93,6 +99,10 @@ protected:
   virtual void drone_take_off();
   virtual void drone_land();
   virtual void drone_emergency();
+  virtual void IMU_calibrate();
+  virtual void flat_trim();
+  virtual void USB_record_start();
+  virtual void USB_record_stop();
   void camera_select(char cam);
   
   //virtual void test(std::string niz="jupej");

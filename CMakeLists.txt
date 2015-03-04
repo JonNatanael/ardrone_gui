@@ -1,7 +1,3 @@
-# Prevede z napakami
-#
-#
-
 cmake_minimum_required(VERSION 2.8.3)
 project(ardrone_gui)
 
@@ -16,6 +12,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp std_msgs rqt_gui rqt_gui_cpp) #ro
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
 include(${QT_USE_FILE})
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
+MESSAGE(${CMAKE_CURRENT_BINARY_DIR}/../devel/lib)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
 ## modules and global scripts declared therein get installed
@@ -25,26 +22,6 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 #######################################
 ## Declare ROS messages and services ##
 #######################################
-
-## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
-
-## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
-
-## Generate added messages and services with any dependencies listed here
-#generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-#)
 
 set(rqt_my_plugin_SRCS
     src/my_namespace/my_plugin.cpp
@@ -78,7 +55,7 @@ catkin_package(
 #  DEPENDS system_lib
 )
 
-catkin_python_setup()
+#catkin_python_setup()
 
 
 #qt4_add_resources(qt_resources_cpp ${QT})
@@ -140,10 +117,10 @@ target_link_libraries(
 )
 
   
-target_link_libraries(
+#target_link_libraries(
 #  mypkg
-  ardrone_gui  
-  )
+  #ardrone_gui  
+  #)
   
   find_package(class_loader)
   class_loader_hide_library_symbols(${PROJECT_NAME})

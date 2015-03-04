@@ -6,9 +6,8 @@
 #include <Qt>
 //#include <ros/publisher.h>
 //#include <ros/subscriber.h>
-//#include <ros/ros.h>
-
-
+#include <ros/ros.h>
+#include <ros/service_client.h>
 
 
 namespace my_namespace {
@@ -47,6 +46,10 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   connect( ui_.set_front_cam_b, SIGNAL(pressed()),				this, SLOT(clickCameraFront())			);
   connect( ui_.set_bottom_cam_b, SIGNAL(pressed()),				this, SLOT(clickCameraBottom())			);
   connect( ui_.Button_autoLand, SIGNAL(pressed()),				this, SLOT(clickAutoLand())				);
+  connect (ui_.imu_calib_btn, SIGNAL(pressed()), this, SLOT(clickIMUCalib()));
+  connect (ui_.flat_trim_btn, SIGNAL(pressed()), this, SLOT(clickFlatTrim()));
+  connect (ui_.usb_record_start_btn, SIGNAL(pressed()), this, SLOT(clickUSBRecordStart()));
+  connect (ui_.usb_record_stop_btn, SIGNAL(pressed()), this, SLOT(clickUSBRecordStop()));
     
   //****  tum ar.drone
   connect( ui_.Button_add,		SIGNAL(pressed()),				this, SLOT(clickAddButton())			);
@@ -215,6 +218,21 @@ void MyPlugin::clickAutoLand(){
 	test("Ni se implementirano.");
 }
 
+void MyPlugin::clickIMUCalib(){
+	IMU_calibrate();
+}
+
+void MyPlugin::clickFlatTrim(){
+	flat_trim();
+}
+
+void MyPlugin::clickUSBRecordStart(){
+	USB_record_start();
+}
+
+void MyPlugin::clickUSBRecordStop(){
+	USB_record_stop();
+}
   
 //-- radio buttons
 void MyPlugin::radioB_joy(){
@@ -325,9 +343,6 @@ void MyPlugin::navdata_callback(const ardrone_autonomy::Navdata& nav_msg){
 	//KRMILJENJE:
 	battUpdate.setValue(nav_msg.batteryPercent);
 	state = nav_msg.state;
-
-	// ob zagonu se predpostavi stanje 2
-	// TODO fix this
 
 	switch(state){
 		case 1: QMetaObject::invokeMethod(ui_.label_drone_state, "setText", Qt::DirectConnection, Q_ARG(QString, "Inited")); break;
@@ -441,7 +456,7 @@ void MyPlugin::joy_callback(const sensor_msgs::Joy::ConstPtr& joy){
 	if(joy->buttons[1] == 1){
 		// prednja kamera
 		ui_.btn_1->setText("On");
-		camera_select(0);
+		//camera_select(0);
 	}
 	else if(joy->buttons[1] == 0){
 		ui_.btn_1->setText("Off");
@@ -610,19 +625,54 @@ void MyPlugin::drone_land(){
 	test("Land drone.");
 }
 
+void MyPlugin::IMU_calibrate(){
+	std_srvs::Empty req;
+	//pošlje zahtevo tipa std_srvs/Empty
+	if (ros::service::call("/ardrone/imu_recalib", req)){
+		test("Calibrating IMU sensors.");
+	}
+	else{
+		test("IMU calibration failed.");
+	}
+}
+
+void MyPlugin::flat_trim(){
+	std_srvs::Empty req;
+	//pošlje zahtevo tipa std_srvs/Empty
+	if (ros::service::call("/ardrone/flattrim", req)){
+		test("Flat trim successful.");
+	}
+	else{
+		test("Flat trim unsuccessful.");
+	}
+}
+
+void MyPlugin::USB_record_start(){
+	ardrone_autonomy::RecordEnable rec;
+	rec.request.enable = 1;
+	if (ros::service::call("/ardrone/setrecord", rec)){
+		test("USB recording started");
+	}
+	else {
+		test("USB record start failed.");
+	}
+}
+
+void MyPlugin::USB_record_stop(){
+	ardrone_autonomy::RecordEnable rec;
+	rec.request.enable = 0;
+	if (ros::service::call("/ardrone/setrecord", rec)){
+		test("USB recording stopped");
+	}
+	else {
+		test("USB record stop failed.");
+	}
+}
+
 void MyPlugin::drone_emergency(){
 	// koda za pristanek v sili (motors off): pošlje se sporočilo tipa std_msgs/Empty
 	std_msgs::Empty msg;
 	pub_emergency.publish(msg);
-	if (state == 0){
-		//test("Emergency off.");
-		state = 1; // default, kadar ni povezave
-		//ui_.emergency_off_b->setText(QString::number(state));
-	}
-	else {
-		//test("Emergency on.");
-		state = 0; // default, kadar ni povezave
-	}	
 }
 
 void MyPlugin::publish_vel(){

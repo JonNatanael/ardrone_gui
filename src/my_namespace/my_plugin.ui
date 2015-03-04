@@ -53,8 +53,8 @@ color: white;</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>621</width>
-     <height>381</height>
+     <width>681</width>
+     <height>471</height>
     </rect>
    </property>
    <property name="minimumSize">
@@ -135,7 +135,7 @@ QTabWidget::pane { /* The tab widget frame */
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>320</y>
+       <y>420</y>
        <width>321</width>
        <height>17</height>
       </rect>
@@ -626,6 +626,71 @@ QTabWidget::pane { /* The tab widget frame */
      </property>
      <property name="text">
       <string>Land on platform</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="imu_calib_btn">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>370</y>
+       <width>121</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>IMU Calibration</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="usb_record_start_btn">
+     <property name="geometry">
+      <rect>
+       <x>270</x>
+       <y>370</y>
+       <width>121</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Start record</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="flat_trim_btn">
+     <property name="geometry">
+      <rect>
+       <x>140</x>
+       <y>370</y>
+       <width>121</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Flat Trim</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_48">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>330</y>
+       <width>241</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Services</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="usb_record_stop_btn">
+     <property name="geometry">
+      <rect>
+       <x>400</x>
+       <y>370</y>
+       <width>121</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Stop record</string>
      </property>
     </widget>
    </widget>
