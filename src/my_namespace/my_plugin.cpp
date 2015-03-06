@@ -446,7 +446,7 @@ void MyPlugin::joy_callback(const sensor_msgs::Joy::ConstPtr& joy){
 		// gumb: A
 		// efekt: emergency
 		ui_.btn_0->setText("On");
-		drone_emergency();
+		//drone_emergency();
 	}
 	else if(joy->buttons[0] == 0){
 		ui_.btn_0->setText("Off");
@@ -466,7 +466,7 @@ void MyPlugin::joy_callback(const sensor_msgs::Joy::ConstPtr& joy){
 	if(joy->buttons[2] == 1){
 		// spodnja kamera
 		ui_.btn_2->setText("On");
-		camera_select(1);
+		//camera_select(1);
 	}
 	else if(joy->buttons[2] == 0){
 		ui_.btn_2->setText("Off");

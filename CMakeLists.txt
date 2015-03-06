@@ -4,7 +4,7 @@ project(ardrone_gui)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS roscpp std_msgs rqt_gui rqt_gui_cpp) #rospy #qt_build)
+find_package(catkin REQUIRED COMPONENTS roscpp std_msgs rqt_gui rqt_gui_cpp rospy) #rospy #qt_build)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -141,8 +141,11 @@ install(FILES
 ## in contrast to setup.py, you can choose the destination
  install(PROGRAMS
    scripts/ardrone_gui
+   scripts/joy.py
+   scripts/controller.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )
+ MESSAGE(${CATKIN_PACKAGE_BIN_DESTINATION})
 
 ## Mark executables and/or libraries for installation
 # install(TARGETS rqt_mypkg rqt_mypkg_node
