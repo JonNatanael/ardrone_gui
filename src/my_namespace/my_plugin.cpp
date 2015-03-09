@@ -61,6 +61,9 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   connect( ui_.radioB_onlyJ,    SIGNAL(pressed()),			this, SLOT(radioB_joy())				);
   connect( ui_.radioB_tumAP,    SIGNAL(pressed()),			this, SLOT(radioB_autopilot())			);
   connect( ui_.radioB_jAndAuto, SIGNAL(pressed()),			this, SLOT(radioB_joyAndAuto())			);
+
+  // za animacije
+  connect( ui_.LED_start, SIGNAL(pressed()),			this, SLOT(LED_start()));
   
 //  connect(ui_.emergency_off_b, SIGNAL(pressed()), this, SLOT(clickoff()));
 
@@ -232,6 +235,29 @@ void MyPlugin::clickUSBRecordStart(){
 
 void MyPlugin::clickUSBRecordStop(){
 	USB_record_stop();
+}
+
+void MyPlugin::LED_start(){
+	double freq = ui_.LED_anim_freq->value();
+	int dur = ui_.LED_anim_dur->value();
+	//ui_.test_anim->setText(QString::number(ui_.LED_anim_freq->value()));
+
+	QString fileName = QString(":/resources/flight_animations.txt");
+
+	QFile file(fileName);
+		if(!file.open(QIODevice::ReadOnly)){
+			QMessageBox::critical(0, QString("Error"), QString("Could not open file: ")+fileName);
+			return;
+		}
+		QTextStream in(&file);
+		ui_.test_anim->setText(in.readLine());
+		//in.seek(0);
+		//ui_.textEdit_opis->setPlainText(in.readAll());
+		//ui_.label_zgradba_ukaza->setText(in.readLine());
+		file.close();	
+
+
+	//ui_.test_anim->setText("start led with frequency "+QString::number(freq, 'f', 2)+" and duration " + QString::number(dur));
 }
   
 //-- radio buttons

@@ -81,6 +81,7 @@ protected slots:
   virtual void clickFlatTrim();
   virtual void clickUSBRecordStart();
   virtual void clickUSBRecordStop();
+  virtual void LED_start();
   // + checkbox
   
   
