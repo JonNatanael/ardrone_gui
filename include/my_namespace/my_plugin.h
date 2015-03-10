@@ -33,6 +33,8 @@
 #include <ardrone_autonomy/Navdata.h>
 #include <ardrone_autonomy/CamSelect.h>
 #include <ardrone_autonomy/RecordEnable.h>
+#include <ardrone_autonomy/LedAnim.h>
+#include <ardrone_autonomy/FlightAnim.h>
 
 namespace my_namespace {
 
@@ -82,6 +84,7 @@ protected slots:
   virtual void clickUSBRecordStart();
   virtual void clickUSBRecordStop();
   virtual void LED_start();
+  virtual void flight_start();
   // + checkbox
   
   
@@ -104,6 +107,7 @@ protected:
   virtual void flat_trim();
   virtual void USB_record_start();
   virtual void USB_record_stop();
+  virtual void init_combo(QString);
   void camera_select(char cam);
   
   //virtual void test(std::string niz="jupej");

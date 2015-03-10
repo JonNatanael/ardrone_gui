@@ -1,5 +1,5 @@
 <RCC>
-  <qresource prefix="resources">
+  <qresource prefix="/resources">
     <file>parrot.png</file>
     <file>flight_animations.txt</file>
     <file>led_animations.txt</file>

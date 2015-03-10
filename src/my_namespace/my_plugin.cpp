@@ -20,6 +20,7 @@ MyPlugin::MyPlugin()
 
   // give QObjects reasonable names
   setObjectName("MyPlugin");
+
 }
 
 void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
@@ -64,6 +65,7 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
 
   // za animacije
   connect( ui_.LED_start, SIGNAL(pressed()),			this, SLOT(LED_start()));
+  connect( ui_.flight_start, SIGNAL(pressed()),			this, SLOT(flight_start()));
   
 //  connect(ui_.emergency_off_b, SIGNAL(pressed()), this, SLOT(clickoff()));
 
@@ -157,7 +159,10 @@ connect(&battUpdate, SIGNAL(valueChanged(int)), ui_.progressBar, SLOT(setValue(i
 	battery = 100;
 	startTimer(25);
 	state = 2;
-}
+	init_combo("led_animations");
+	init_combo("flight_animations");
+
+	}
 
 void MyPlugin::shutdownPlugin()
 {
@@ -238,26 +243,39 @@ void MyPlugin::clickUSBRecordStop(){
 }
 
 void MyPlugin::LED_start(){
+	int type = ui_.LED_choice->currentIndex();
 	double freq = ui_.LED_anim_freq->value();
 	int dur = ui_.LED_anim_dur->value();
-	//ui_.test_anim->setText(QString::number(ui_.LED_anim_freq->value()));
 
-	QString fileName = QString(":/resources/flight_animations.txt");
+	ui_.test_anim->setText(QString::number(ui_.LED_anim_freq->value()));
 
-	QFile file(fileName);
-		if(!file.open(QIODevice::ReadOnly)){
-			QMessageBox::critical(0, QString("Error"), QString("Could not open file: ")+fileName);
-			return;
-		}
-		QTextStream in(&file);
-		ui_.test_anim->setText(in.readLine());
-		//in.seek(0);
-		//ui_.textEdit_opis->setPlainText(in.readAll());
-		//ui_.label_zgradba_ukaza->setText(in.readLine());
-		file.close();	
+	ardrone_autonomy::LedAnim anim;
+	anim.request.type = type;
+	anim.request.freq = freq;
+	anim.request.duration = dur;
 
+	if (ros::service::call("/ardrone/setledanimation", anim)){
+		ui_.test_anim->setText("Animation activated.");
+	}
+	else{
+		ui_.test_anim->setText("Problem calling animation.");
+	}
+}
 
-	//ui_.test_anim->setText("start led with frequency "+QString::number(freq, 'f', 2)+" and duration " + QString::number(dur));
+void MyPlugin::flight_start(){
+	int dur = ui_.flight_anim_dur->value();
+	int type = ui_.LED_choice->currentIndex();
+
+	ardrone_autonomy::FlightAnim anim;
+	anim.request.type = type;
+	anim.request.duration = dur;
+
+	if (ros::service::call("/ardrone/setflightanimation", anim)){
+		ui_.test_anim->setText("Calling animation " + ui_.flight_choice->currentText());
+	}
+	else{
+		ui_.test_anim->setText("Problem calling animation " + ui_.flight_choice->currentText());
+	}	
 }
   
 //-- radio buttons
@@ -743,6 +761,32 @@ void MyPlugin::spinbox2_changed(double vrednost){
 void batterySignal::setValue(int value)
 {
 	emit valueChanged(value);
+}
+
+void MyPlugin::init_combo(QString name){
+	//inicializacija boxov za animacije
+	// predpostavlja, da se GUI zažene v direktoriju catkin_ws
+	//QString fileName = QString(QDir::currentPath()+"/src/ardrone_gui/resources/led_animations.txt");
+	QString fileName = QString(QDir::currentPath()+"/src/ardrone_gui/resources/"+name+".txt");
+	if(!fileName.isEmpty()){
+		QFile file(fileName);
+		if(!file.open(QIODevice::ReadOnly)){
+			QMessageBox::critical(0, QString("Error"), QString("Could not open file: ")+fileName);
+			ui_.label_zgradba_ukaza->setText(QString());
+			ui_.textEdit_opis->setPlainText(QString());
+			return;
+		}
+		else {
+			QTextStream in(&file);
+   			while (!in.atEnd())
+   			{
+      			QString line = in.readLine();
+      			if (name=="led_animations")	ui_.LED_choice->addItem(line);
+      			else if (name=="flight_animations") ui_.flight_choice->addItem(line);
+   			}
+   			file.close();
+   		}
+	}
 }
 
 /*
