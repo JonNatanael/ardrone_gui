@@ -81,18 +81,8 @@ if __name__=='__main__':
 	ScaleYaw        = float ( rospy.get_param("~ScaleYaw",ScaleYaw) )
 	ScaleZ          = float ( rospy.get_param("~ScaleZ",ScaleZ) )
 
-	# Now we construct our Qt Application and associated controllers and windows
-	app = QtGui.QApplication(sys.argv)
-	display = DroneVideoDisplay()
 	controller = BasicDroneController()
 
-	# subscribe to the /joy topic and handle messages of type Joy with the function ReceiveJoystickMessage
 	subJoystick = rospy.Subscriber('/joy', Joy, ReceiveJoystickMessage)
 	
-	# executes the QT application
-	display.show()
-	status = app.exec_()
-
-	# and only progresses to here once the application has been shutdown
-	rospy.signal_shutdown('Great Flying!')
-	sys.exit(status)
+	rospy.spin()
