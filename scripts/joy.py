@@ -23,8 +23,8 @@ from PySide import QtCore, QtGui
 ButtonEmergency = 0
 ButtonLand      = 1
 ButtonTakeoff   = 2
-ButtonIMU = 3
-ButtonFlatTrim = 4
+ButtonIMU       = 3
+ButtonFlatTrim  = 4
 
 # define the default mapping between joystick axes and their corresponding directions
 AxisRoll        = 0

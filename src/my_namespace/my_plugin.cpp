@@ -772,8 +772,6 @@ void MyPlugin::init_combo(QString name){
 		QFile file(fileName);
 		if(!file.open(QIODevice::ReadOnly)){
 			QMessageBox::critical(0, QString("Error"), QString("Could not open file: ")+fileName);
-			ui_.label_zgradba_ukaza->setText(QString());
-			ui_.textEdit_opis->setPlainText(QString());
 			return;
 		}
 		else {
