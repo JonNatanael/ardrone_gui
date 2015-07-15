@@ -1,0 +1,9 @@
+<launch>
+  
+  <include file="$(find facedetector)/launch/facedetector.launch">
+    <arg name="image_topic" value="/ardrone/image_raw" />
+  </include>
+
+  <!--<include file="$(find facedetector)/launch/facevisualizer.launch" />-->
+
+</launch>

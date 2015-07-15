@@ -47,6 +47,11 @@
   <build_depend>rqt_gui</build_depend>
   <build_depend>rqt_gui_cpp</build_depend>
   <build_depend>std_msgs</build_depend>
+  <build_depend>facedetector</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>cv_bridge</build_depend>
+  <build_depend>image_transport</build_depend>
+  <build_depend>message_filters</build_depend>
   
   <run_depend>qt_build</run_depend>
   <run_depend>roscpp</run_depend>
@@ -54,6 +59,11 @@
   <run_depend>rqt_gui</run_depend>
   <run_depend>rqt_gui_cpp</run_depend>
   <run_depend>std_msgs</run_depend>
+  <run_depend>facedetector</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>cv_bridge</run_depend>
+  <run_depend>image_transport</run_depend>
+  <run_depend>message_filters</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

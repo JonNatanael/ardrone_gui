@@ -4,14 +4,14 @@ project(ardrone_gui)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS roscpp std_msgs rqt_gui rqt_gui_cpp rospy) #rospy #qt_build)
+find_package(catkin REQUIRED COMPONENTS roscpp std_msgs rqt_gui rqt_gui_cpp rospy OpenCV REQUIRED cv_bridge message_filters) #rospy #qt_build)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
 include(${QT_USE_FILE})
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+include_directories(${CMAKE_CURRENT_BINARY_DIR} ${OpenCV_INCLUDE_DIRS})
 MESSAGE(${CMAKE_CURRENT_BINARY_DIR}/../devel/lib)
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -86,6 +86,9 @@ add_library(
 
 ## Declare a cpp executable
 # add_executable(rqt_mypkg_node src/rqt_mypkg_node.cpp)
+
+add_executable(faces src/faces.cpp)
+target_link_libraries(faces ${catkin_LIBRARIES} ${OpenCV_LIBS})
 
 # add_executable(rqt_mypkg src/my_namespace/my_plugin.cpp)
 

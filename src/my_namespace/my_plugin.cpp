@@ -264,7 +264,7 @@ void MyPlugin::LED_start(){
 
 void MyPlugin::flight_start(){
 	int dur = ui_.flight_anim_dur->value();
-	int type = ui_.LED_choice->currentIndex();
+	int type = ui_.flight_choice->currentIndex();
 
 	ardrone_autonomy::FlightAnim anim;
 	anim.request.type = type;
@@ -450,7 +450,7 @@ void MyPlugin::joy_callback(const sensor_msgs::Joy::ConstPtr& joy){
 	}
 	
 	// scale and limit axes commands
-	pitch_y = axes_scale * (float)joy->axes[1];
+	/*pitch_y = axes_scale * (float)joy->axes[1];
 	roll_x = axes_scale * (float)joy->axes[0];
 	yaw_z = axes_scale * (float)joy->axes[3];
 	height_z = axes_scale * (float)joy->axes[4];
@@ -465,13 +465,14 @@ void MyPlugin::joy_callback(const sensor_msgs::Joy::ConstPtr& joy){
 	else if(height_z < -axes_max) height_z = -axes_max;
 	
 	// send axes commands
+	// this is currently handled by controller.py
 	last_send_vel.linear.x = pitch_y;
 	last_send_vel.linear.y = roll_x;
 	last_send_vel.linear.z = height_z;
 	last_send_vel.angular.z = yaw_z;
 	
 	last_send_vel.angular.x = 0.0;
-	last_send_vel.angular.y = 0.0;
+	last_send_vel.angular.y = 0.0;*/
 	
 	/*ui_.label_pitch_y->setText( QString::number(pitch_y,'f', 4) );
 	ui_.label_roll_x->setText( QString::number(roll_x,'f', 4) );
@@ -720,7 +721,8 @@ void MyPlugin::drone_emergency(){
 }
 
 void MyPlugin::publish_vel(){
-	joy_vel_.publish(last_send_vel);
+	//temporarily disabled
+	//joy_vel_.publish(last_send_vel);
 }
 
 void MyPlugin::camera_select(char cam){

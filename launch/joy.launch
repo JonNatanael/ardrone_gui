@@ -7,8 +7,8 @@
 	    <param name="altitude_max" value="6000" />		<!-- in millimeters = 3 meters = 9' -->
         <param name="altitude_min" value="50" />		<!-- in millimeters = 5cm = 2" -->
         <param name="euler_angle_max" value="0.1" />	<!-- maximum allowable body angle in radians = 5 degrees -->
-        <param name="control_vz_max" value="2000" />		<!-- maximum z velocity in mm/sec = 0.2m/sec -->
-	    <param name="control_yaw" value="2" />		<!-- maximum rotation rate in radians/sec = 40 degrees per second (1/9 rev/sec) -->
+        <param name="control_vz_max" value="3000" />		<!-- maximum z velocity in mm/sec = 0.2m/sec -->
+	    <param name="control_yaw" value="4" />		<!-- maximum rotation rate in radians/sec = 40 degrees per second (1/9 rev/sec) -->
 
 	    <param name="do_imu_caliberation" value="true" />
 	</node>
@@ -33,9 +33,9 @@
 		<param name="AxisZ"				value="1" />
 
 		<!-- Configures the joystick mapping -->
-		<param name="ScaleRoll"			value="3" />
-		<param name="ScalePitch"		value="3" />
-		<param name="ScaleYaw"			value="3" />
+		<param name="ScaleRoll"			value="4" />
+		<param name="ScalePitch"		value="4" />
+		<param name="ScaleYaw"			value="5" />
 		<param name="ScaleZ"			value="3" />
 	</node>
 </launch>
