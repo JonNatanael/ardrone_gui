@@ -70,11 +70,12 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
         cv::line(cv_ptr->image, cv::Point(p_x+(p_w/2), p_y+(p_h/2)),cv::Point(det_msg->x[i]+(det_msg->width[i]/2),det_msg->y[i]+(det_msg->height[i]/2)),Scalar(255,0,0));
       }
 
-      fu = (x+(w/2))/cam_w;
-      fv = (y+(h/2))/cam_h;
+      fu = (x+(double)(w/2))/cam_w;
+      fv = (y+(double)(h/2))/cam_h;
       fd = sqrt((cam_w*cam_h)/(w*h));
 
-      ROS_INFO("fu = %f, fv = %d, fd = %d", fu, fv, fd);
+      //ROS_INFO("x = %d, y = %d, w/2 = %f, h/2 = %f", x,y,w/2,h/2);
+      ROS_INFO("fu = %f, fv = %f, fd = %f", fu, fv, fd);
       //ROS_INFO("%d, %d", det_msg->x[i], det_msg->y[i]);
       ROS_INFO("\n");
 
