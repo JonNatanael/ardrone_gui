@@ -1,6 +1,6 @@
 #include "ros/ros.h"
 #include "std_msgs/String.h"
-//#include "facedetector/Detection.h"
+#include "facedetector/Detection.h"
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
@@ -45,7 +45,7 @@ void imageCallback(const ImageConstPtr& cam_msg){
 
 }*/
 
-/*void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConstPtr& cam_msg){
+void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConstPtr& cam_msg){
   // syncronised image & detection
   cv_bridge::CvImagePtr cv_ptr;
   try{
@@ -66,12 +66,12 @@ void imageCallback(const ImageConstPtr& cam_msg){
       if (p_x != 0 && p_y != 0){
         // if previous state is not 0, draw line between detection centers and previous position rectangle
         cv::rectangle(cv_ptr->image, cv::Rect(p_x,p_y,p_h,p_w), Scalar(0,255,255),2);
-        cv::arrowedLine(cv_ptr->image, cv::Point(p_x+(p_w/2), p_y+(p_h/2)),cv::Point(det_msg->x[i]+(det_msg->width[i]/2),det_msg->y[i]+(det_msg->height[i]/2)),Scalar(255,0,0));
+        cv::line(cv_ptr->image, cv::Point(p_x+(p_w/2), p_y+(p_h/2)),cv::Point(det_msg->x[i]+(det_msg->width[i]/2),det_msg->y[i]+(det_msg->height[i]/2)),Scalar(255,0,0));
       }
 
       /*ROS_INFO("%d, %d", p_x, p_y);
       ROS_INFO("%d, %d", det_msg->x[i], det_msg->y[i]);
-      ROS_INFO("\n");
+      ROS_INFO("\n");*/
 
       //save current state
       p_x = det_msg->x[i]; p_y = det_msg->y[i]; p_h = det_msg->height[i]; p_w = det_msg->width[i];
@@ -84,7 +84,7 @@ void imageCallback(const ImageConstPtr& cam_msg){
   cv:imshow(OPENCV_WINDOW, cv_ptr->image);
   cv::waitKey(3);
 
-}*/
+}
 
 
 int main(int argc, char **argv)
@@ -96,13 +96,13 @@ int main(int argc, char **argv)
 
   ros::Subscriber sub_image = n.subscribe("/ardrone/image_raw", 1, imageCallback);
 
-  //message_filters::Subscriber<facedetector::Detection> sub_faces(n, "/facedetector/faces", 1);
-  //message_filters::Subscriber<Image> sub_camera(n, "/ardrone/image_raw", 1);
+  message_filters::Subscriber<facedetector::Detection> sub_faces(n, "/facedetector/faces", 1);
+  message_filters::Subscriber<Image> sub_camera(n, "/ardrone/image_raw", 1);
 
-  //typedef sync_policies::ApproximateTime<facedetector::Detection, Image> MySyncPolicy;
+  typedef sync_policies::ApproximateTime<facedetector::Detection, Image> MySyncPolicy;
 
-  //Synchronizer<MySyncPolicy> sync(MySyncPolicy(10), sub_faces, sub_camera);
-  //sync.registerCallback(boost::bind(&callback, _1, _2));
+  Synchronizer<MySyncPolicy> sync(MySyncPolicy(10), sub_faces, sub_camera);
+  sync.registerCallback(boost::bind(&callback, _1, _2));
 
   cv::namedWindow(OPENCV_WINDOW);
 
