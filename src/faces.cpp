@@ -57,7 +57,8 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
   }
 
   //init for temp. variables
-  int x,y,w,h,fu,fv,fd;
+  int x,y,w,h;
+  double fu,fv,fd;
 
   for (int i = 0; i < det_msg->image.size();i++){
     x = det_msg->x[i];y = det_msg->y[i];h = det_msg->height[i];w = det_msg->width[i];
@@ -69,9 +70,13 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
         cv::line(cv_ptr->image, cv::Point(p_x+(p_w/2), p_y+(p_h/2)),cv::Point(det_msg->x[i]+(det_msg->width[i]/2),det_msg->y[i]+(det_msg->height[i]/2)),Scalar(255,0,0));
       }
 
-      /*ROS_INFO("%d, %d", p_x, p_y);
-      ROS_INFO("%d, %d", det_msg->x[i], det_msg->y[i]);
-      ROS_INFO("\n");*/
+      fu = (x+(w/2))/cam_w;
+      fv = (y+(h/2))/cam_h;
+      fd = sqrt((cam_w*cam_h)/(w*h));
+
+      ROS_INFO("fu = %f, fv = %d, fd = %d", fu, fv, fd);
+      //ROS_INFO("%d, %d", det_msg->x[i], det_msg->y[i]);
+      ROS_INFO("\n");
 
       //save current state
       p_x = det_msg->x[i]; p_y = det_msg->y[i]; p_h = det_msg->height[i]; p_w = det_msg->width[i];
