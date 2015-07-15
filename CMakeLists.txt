@@ -1,27 +1,12 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(ardrone_gui)
 
-## Find catkin macros and libraries
-## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
-## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS roscpp std_msgs rqt_gui rqt_gui_cpp rospy OpenCV REQUIRED cv_bridge message_filters) #rospy #qt_build)
-
-## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+find_package(catkin REQUIRED COMPONENTS roscpp std_msgs rqt_gui rqt_gui_cpp rospy OpenCV REQUIRED cv_bridge message_filters)
 
 find_package(Qt4 COMPONENTS QtCore QtGui REQUIRED)
 include(${QT_USE_FILE})
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${OpenCV_INCLUDE_DIRS})
 MESSAGE(${CMAKE_CURRENT_BINARY_DIR}/../devel/lib)
-
-## Uncomment this if the package has a setup.py. This macro ensures
-## modules and global scripts declared therein get installed
-## See http://ros.org/doc/groovy/api/catkin/html/user_guide/setup_dot_py.html
-#catkin_python_setup()
-
-#######################################
-## Declare ROS messages and services ##
-#######################################
 
 set(rqt_my_plugin_SRCS
     src/my_namespace/my_plugin.cpp
@@ -40,25 +25,12 @@ set(rqt_my_plugin_INCLUDE_DIRECTORIES
     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-###################################
-## catkin specific configuration ##
-###################################
-## The catkin_package macro generates cmake config files for your package
-## Declare things to be passed to dependent projects
-## LIBRARIES: libraries you create in this project that dependent projects also need
-## CATKIN_DEPENDS: catkin_packages dependent projects also need
-## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
    INCLUDE_DIRS ${rqt_my_plugin_INCLUDE_DIRECTORIES}
    LIBRARIES ${PROJECT_NAME}
    CATKIN_DEPENDS roscpp std_msgs rqt_gui rqt_gui_cpp
-#  DEPENDS system_lib
 )
 
-#catkin_python_setup()
-
-
-#qt4_add_resources(qt_resources_cpp ${QT})
 qt4_wrap_cpp(rqt_my_plugin_MOCS ${rqt_my_plugin_HDRS})
 qt4_wrap_ui(rqt_my_plugin_UIS_H ${rqt_my_plugin_UIS})
 
@@ -66,12 +38,7 @@ qt4_wrap_ui(rqt_my_plugin_UIS_H ${rqt_my_plugin_UIS})
 ## Build ##
 ###########
 
-## Specify additional locations of header files
-## Your package locations should be listed before other locations
 include_directories(
-#  ${CMAKE_CURRENT_BINARY_DIR}
-	~/catkin_ws/src/ardrone_autonomy/msg_gen/cpp/include/
-	~/catkin_ws/src/ardrone_autonomy/srv_gen/cpp/include/
   ${rqt_my_plugin_INCLUDE_DIRECTORIES}
   ${catkin_INCLUDE_DIRS}
 )
@@ -84,109 +51,47 @@ add_library(
   ${rqt_my_plugin_UIS_H}
 )
 
-## Declare a cpp executable
-# add_executable(rqt_mypkg_node src/rqt_mypkg_node.cpp)
-
 add_executable(faces src/faces.cpp)
 target_link_libraries(faces ${catkin_LIBRARIES} ${OpenCV_LIBS})
 
-# add_executable(rqt_mypkg src/my_namespace/my_plugin.cpp)
-
 file(GLOB_RECURSE QT_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS *.cpp)
-
-#add_executable(mypkg ${QT_SOURCES} ${rqt_my_plugin_MOCS} ${rqt_my_plugin_UIS_H})
-
-#add_executable(rqt_mypkg2 src/my_namespace/my_plugin.cpp)
-### target_link_libraries(rqt_mypkg ${catkin_LIBRARIES})
-
-## Add cmake target dependencies of the executable/library
-## as an example, message headers may need to be generated before nodes
-# add_dependencies(rqt_mypkg_node rqt_mypkg_generate_messages_cpp)
 
 MESSAGE(${QT_QTCORE_LIBRARY})
 
 LINK_DIRECTORIES(/usr/lib/i386-linux-gnu)
 
-## Specify libraries to link a library or executable target against
-# target_link_libraries(rqt_mypkg ${catkin_LIBRARIES} )
 target_link_libraries(
   ardrone_gui
   ${catkin_LIBRARIES} 
   ${QT_QTCORE_LIBRARY} 
   ${QT_QTGUI_LIBRARY} 
-
-###  ${QT_LIBRARIES}
-###  ${ROS_LIBRARIES}
 )
-
   
-#target_link_libraries(
-#  mypkg
-  #ardrone_gui  
-  #)
-  
-  find_package(class_loader)
-  class_loader_hide_library_symbols(${PROJECT_NAME})
+find_package(class_loader)
+class_loader_hide_library_symbols(${PROJECT_NAME})
 
 #############
 ## Install ##
 #############
-
-# all install targets should use catkin DESTINATION variables
-# See http://ros.org/doc/groovy/api/catkin/html/adv_user_guide/variables.html
 
 install(FILES
 	plugin.xml
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
-## Mark executable scripts (Python etc.) for installation
-## in contrast to setup.py, you can choose the destination
- install(PROGRAMS
+install(PROGRAMS
    scripts/ardrone_gui
    scripts/joy.py
    scripts/controller.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
- )
- MESSAGE(${CATKIN_PACKAGE_BIN_DESTINATION})
+)
+MESSAGE(${CATKIN_PACKAGE_BIN_DESTINATION})
 
-## Mark executables and/or libraries for installation
-# install(TARGETS rqt_mypkg rqt_mypkg_node
 install(TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-#  RUNTIME DESTINATION ${catkin_LIBRARIES}
 )
 
-## Mark cpp header files for installation
 install(DIRECTORY include/${PROJECT_NAME}/
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
-#   FILES_MATCHING PATTERN "*.h"
-#   PATTERN ".svn" EXCLUDE
 )
-
-## Mark other files for installation (e.g. launch and bag files, etc.)
-#install(FILES
-#	plugin.xml
-#   # myfile1
-#   # myfile2
-#   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-#)
-
-#############
-## Testing ##
-#############
-
-## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_rqt_mypkg.cpp)
-# if(TARGET ${PROJECT_NAME}-test)
-#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
-
-## Add folders to be run by python nosetests
-# catkin_add_nosetests(test)
-
-#*************************************************
-### add_executable(rqt_mypkg2 src/my_namespace/my_plugin.cpp)
-### target_link_libraries(rqt_mypkg2 ${catkin_LIBRARIES})
