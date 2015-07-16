@@ -101,7 +101,7 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
       pitch = delta_fd;
       yaw = delta_fu;
       roll = delta_fu-(double)((psi_ref-psi)/fov_u); // psi_ref je zaenkrat 0
-      z = delta_fv-(double)((-theta)/fov_v);
+      z = delta_fv-(double)((-theta)/fov_v); // roll namesto theta?
 
       //ROS_INFO("fu = %f, fv = %f, fd = %f", fu, fv, fd);
       ROS_INFO("pitch = %f, roll = %f, yaw = %f, z = %f", pitch, roll, yaw, z);
@@ -118,7 +118,7 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
 
     msg.linear.x = pitch;
     msg.linear.y = roll;
-    msg.linear.z = z;
+    //msg.linear.z = z;
     msg.angular.z = yaw;
 
     cmd_pub.publish(msg);
@@ -128,8 +128,8 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
   }
 
   cv:imshow(OPENCV_WINDOW, cv_ptr->image);
-  //cv::waitKey(200);
-  cv::waitKey(3);
+  cv::waitKey(200);
+  //cv::waitKey(3);
 
 }
 

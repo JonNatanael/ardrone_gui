@@ -21,21 +21,21 @@
 	<node name="joystick_controller" pkg="ardrone_gui" type="joy.py" output="screen" required="true">
 		<!-- Configures the joystick button mapping -->
 		<param name="ButtonEmergency"	value="5" />
-		<param name="ButtonLand"		value="1" />
+		<param name="ButtonLand"		value="0" />
 		<param name="ButtonTakeoff"		value="3" />
-		<param name="ButtonIMU"		value="0" />
+		<param name="ButtonIMU"		value="4" />
 		<param name="ButtonFlatTrim"		value="2" />
 
 		<!-- Configures the joystick axis mapping -->
-		<param name="AxisRoll"			value="4" />
-		<param name="AxisPitch"			value="5" />
-		<param name="AxisYaw"			value="0" />
-		<param name="AxisZ"				value="1" />
+		<param name="AxisRoll"			value="6" />
+		<param name="AxisPitch"			value="7" />
+		<param name="AxisYaw"			value="3" />
+		<param name="AxisZ"				value="4" />
 
 		<!-- Configures the joystick mapping -->
-		<param name="ScaleRoll"			value="4" />
-		<param name="ScalePitch"		value="4" />
-		<param name="ScaleYaw"			value="5" />
-		<param name="ScaleZ"			value="3" />
+		<param name="ScaleRoll"			value="0.2" />
+		<param name="ScalePitch"		value="0.2" />
+		<param name="ScaleYaw"			value="0.5" />
+		<param name="ScaleZ"			value="1" />
 	</node>
 </launch>
