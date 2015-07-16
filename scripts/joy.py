@@ -56,6 +56,28 @@ def ReceiveJoystickMessage(data):
 		rospy.loginfo("Flat Trim Button Pressed")
 		controller.SendFlatTrim()
 	else:
+		#print data.axes
+		if data.axes[AxisRoll] != 0:
+			if data.axes[AxisRoll]>0:
+				rospy.loginfo("Rolling left")
+			else:
+				rospy.loginfo("Rolling right")
+		elif data.axes[AxisPitch] != 0:
+			if data.axes[AxisPitch]>0:
+				rospy.loginfo("Moving forward")
+			else:
+				rospy.loginfo("Moving backward")
+		elif data.axes[AxisYaw] != 0:
+			if data.axes[AxisYaw]>0:
+				rospy.loginfo("Turning left")
+			else:
+				rospy.loginfo("Turning right")	
+		elif data.axes[AxisZ] != 0:
+			if data.axes[AxisZ]>0:
+				rospy.loginfo("Moving up")
+			else:
+				rospy.loginfo("Moving down")
+
 		controller.SetCommand(data.axes[AxisRoll]/ScaleRoll,data.axes[AxisPitch]/ScalePitch,data.axes[AxisYaw]/ScaleYaw,data.axes[AxisZ]/ScaleZ)
 
 

@@ -13,6 +13,7 @@
 #include <message_filters/synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
 #include <sensor_msgs/Image.h>
+#include <geometry_msgs/Twist.h>
 
 static const std::string OPENCV_WINDOW = "Image window";
 
@@ -31,6 +32,10 @@ double p_fz = 0;
 
 int cam_h = 360;
 int cam_w = 640;
+
+ros::Publisher cmd_pub;
+
+geometry_msgs::Twist msg;
 
 void imageCallback(const ImageConstPtr& cam_msg){
   // just image display
@@ -63,7 +68,13 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
 
   //init for temp. variables
   int x,y,w,h;
-  double fu,fv,fd,fz;
+  double fu,fv,fd;
+  double pitch, yaw, roll, z;
+  double psi, theta;
+  double psi_ref = 0;
+  double fov_v = 35;
+  double fov_u = 60;
+  double delta_fu, delta_fv, delta_fd;
 
   for (int i = 0; i < det_msg->image.size();i++){
     x = det_msg->x[i];y = det_msg->y[i];h = det_msg->height[i];w = det_msg->width[i];
@@ -75,15 +86,29 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
         cv::line(cv_ptr->image, cv::Point(p_x+(p_w/2), p_y+(p_h/2)),cv::Point(det_msg->x[i]+(det_msg->width[i]/2),det_msg->y[i]+(det_msg->height[i]/2)),Scalar(255,0,0));
       }
 
+      theta = nav_msg->vy;
+      psi = nav_msg->rotZ;
+      psi_ref = psi;
+
       fu = (x+(double)(w/2))/cam_w;
       fv = (y+(double)(h/2))/cam_h;
       fd = sqrt((cam_w*cam_h)/(w*h));
-      fz = abs(p_fu-fu)-(double)((-nav_msg->vy)/35); // 35 je FOV po y
+      delta_fu = fu-p_fu;
+      delta_fv = fv-p_fv;
+      delta_fd = fd-p_fd;
+
+
+      pitch = delta_fd;
+      yaw = delta_fu;
+      roll = delta_fu-(double)((psi_ref-psi)/fov_u); // psi_ref je zaenkrat 0
+      z = delta_fv-(double)((-theta)/fov_v);
 
       //ROS_INFO("fu = %f, fv = %f, fd = %f", fu, fv, fd);
+      ROS_INFO("pitch = %f, roll = %f, yaw = %f, z = %f", pitch, roll, yaw, z);
+      //ROS_INFO("delta fu = %f, delta fv = %f, delta fd = %f", delta_fu, delta_fv, delta_fd);
       //ROS_INFO("p_fu = %f, p_fv = %f, p_fd = %f", p_fu, p_fv, p_fd);
-      ROS_INFO("delta fu = %f, delta fv = %f, delta fd = %f", fu-p_fu, fv-p_fv, fd-p_fd);
-      //ROS_INFO("delta z = %f, delta x = %f", fz, fd-p_fd);
+      
+      //ROS_INFO("delta z = %f, delta x = %f", z, fd-p_fd);
       ROS_INFO("\n");
 
       //save current state
@@ -91,12 +116,20 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
       p_fu = fu; p_fv = fv; p_fd = fd;
     }
 
+    msg.linear.x = pitch;
+    msg.linear.y = roll;
+    msg.linear.z = z;
+    msg.angular.z = yaw;
+
+    cmd_pub.publish(msg);
+
     cv::Rect r = cv::Rect(det_msg->x[i],det_msg->y[i],det_msg->height[i],det_msg->width[i]);
     cv::rectangle(cv_ptr->image, r, Scalar(0,0,255),2);
   }
 
   cv:imshow(OPENCV_WINDOW, cv_ptr->image);
-  cv::waitKey(200);
+  //cv::waitKey(200);
+  cv::waitKey(3);
 
 }
 
@@ -119,6 +152,8 @@ int main(int argc, char **argv)
 
   Synchronizer<MySyncPolicy> sync(MySyncPolicy(10), sub_faces, sub_camera, sub_navdata);
   sync.registerCallback(boost::bind(&callback, _1, _2, _3));
+
+  cmd_pub = n.advertise<geometry_msgs::Twist>("/cmd_vel", 1000);
 
   cv::namedWindow(OPENCV_WINDOW);
 
