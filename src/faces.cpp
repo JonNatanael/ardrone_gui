@@ -32,6 +32,13 @@ double p_fz = 0;
 
 int cam_h = 360;
 int cam_w = 640;
+double fov_v = 35;
+double fov_u = 60;
+
+double A_exp = 40*30; // pričakovana velikost objekta
+double d_exp = 1; //pričakovana razdalja do objekta
+double psi_ref = 0;
+
 
 ros::Publisher cmd_pub;
 
@@ -71,9 +78,8 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
   double fu,fv,fd;
   double pitch, yaw, roll, z;
   double psi, theta;
-  double psi_ref = 0;
-  double fov_v = 35;
-  double fov_u = 60;
+
+
   double delta_fu, delta_fv, delta_fd;
 
   for (int i = 0; i < det_msg->image.size();i++){
@@ -88,7 +94,9 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
 
       theta = nav_msg->vy;
       psi = nav_msg->rotZ;
-      psi_ref = psi;
+      //psi_ref = psi;
+      if (abs(psi_ref-psi)>25)
+        ROS_INFO("updating psi");
 
       fu = (x+(double)(w/2))/cam_w;
       fv = (y+(double)(h/2))/cam_h;
@@ -101,7 +109,7 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
       pitch = delta_fd;
       yaw = delta_fu;
       roll = delta_fu-(double)((psi_ref-psi)/fov_u); // psi_ref je zaenkrat 0
-      z = delta_fv-(double)((-theta)/fov_v); // roll namesto theta?
+      z = delta_fv-(double)((-theta)/fov_v);
 
       //ROS_INFO("fu = %f, fv = %f, fd = %f", fu, fv, fd);
       ROS_INFO("pitch = %f, roll = %f, yaw = %f, z = %f", pitch, roll, yaw, z);
@@ -109,7 +117,7 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
       //ROS_INFO("p_fu = %f, p_fv = %f, p_fd = %f", p_fu, p_fv, p_fd);
       
       //ROS_INFO("delta z = %f, delta x = %f", z, fd-p_fd);
-      ROS_INFO("\n");
+      //ROS_INFO("\n");
 
       //save current state
       p_x = det_msg->x[i]; p_y = det_msg->y[i]; p_h = det_msg->height[i]; p_w = det_msg->width[i];
@@ -121,7 +129,7 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
     //msg.linear.z = z;
     msg.angular.z = yaw;
 
-    cmd_pub.publish(msg);
+    //cmd_pub.publish(msg);
 
     cv::Rect r = cv::Rect(det_msg->x[i],det_msg->y[i],det_msg->height[i],det_msg->width[i]);
     cv::rectangle(cv_ptr->image, r, Scalar(0,0,255),2);

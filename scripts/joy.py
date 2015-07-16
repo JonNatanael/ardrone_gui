@@ -23,8 +23,7 @@ from PySide import QtCore, QtGui
 ButtonEmergency = 0
 ButtonLand      = 1
 ButtonTakeoff   = 2
-ButtonIMU       = 3
-ButtonFlatTrim  = 4
+ButtonFlatTrim  = 3
 
 # define the default mapping between joystick axes and their corresponding directions
 AxisRoll        = 0
@@ -49,9 +48,6 @@ def ReceiveJoystickMessage(data):
 	elif data.buttons[ButtonTakeoff]==1:
 		rospy.loginfo("Takeoff Button Pressed")
 		controller.SendTakeoff()
-	elif data.buttons[ButtonIMU]==1:
-		rospy.loginfo("IMU Button Pressed")
-		controller.SendIMU()
 	elif data.buttons[ButtonFlatTrim]==1:
 		rospy.loginfo("Flat Trim Button Pressed")
 		controller.SendFlatTrim()
@@ -91,7 +87,6 @@ if __name__=='__main__':
 	ButtonEmergency = int (   rospy.get_param("~ButtonEmergency",ButtonEmergency) )
 	ButtonLand      = int (   rospy.get_param("~ButtonLand",ButtonLand) )
 	ButtonTakeoff   = int (   rospy.get_param("~ButtonTakeoff",ButtonTakeoff) )
-	ButtonIMU  = int (   rospy.get_param("~ButtonIMU",ButtonIMU) )
 	ButtonFlatTrim   = int (   rospy.get_param("~ButtonFlatTrim",ButtonFlatTrim) )
 
 	AxisRoll        = int (   rospy.get_param("~AxisRoll",AxisRoll) )

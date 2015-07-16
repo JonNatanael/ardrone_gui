@@ -9,14 +9,13 @@
 		<param name="ButtonEmergency"	value="5" />
 		<param name="ButtonLand"		value="1" />
 		<param name="ButtonTakeoff"		value="3" />
-		<param name="ButtonIMU"		value="0" />
-		<param name="ButtonFlatTrim"		value="2" />
+		<param name="ButtonFlatTrim"		value="0" />
 
 		<!-- Configures the joystick axis mapping -->
-		<param name="AxisRoll"			value="4" />
-		<param name="AxisPitch"			value="5" />
-		<param name="AxisYaw"			value="0" />
-		<param name="AxisZ"				value="1" />
+		<param name="AxisRoll"			value="0" />
+		<param name="AxisPitch"			value="1" />
+		<param name="AxisYaw"			value="2" />
+		<param name="AxisZ"				value="3" />
 
 		<!-- Configures the joystick mapping -->
 		<param name="ScaleRoll"			value="4" />

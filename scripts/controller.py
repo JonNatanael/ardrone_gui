@@ -69,9 +69,6 @@ class BasicDroneController(object):
 		# Send an emergency (or reset) message to the ardrone driver
 		self.pubReset.publish(Empty())
 
-	def SendIMU(self):
-		print self.srvIMU()
-
 	def SendFlatTrim(self):
 		print self.srvFlatTrim()
 
