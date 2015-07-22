@@ -64,6 +64,7 @@
   <run_depend>cv_bridge</run_depend>
   <run_depend>image_transport</run_depend>
   <run_depend>message_filters</run_depend>
+  <run_depend>ardrone_autonomy</run_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

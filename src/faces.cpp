@@ -136,7 +136,8 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
 
 
       pitch = delta_fd;
-      yaw = delta_fu;
+      //yaw = delta_fu;
+      yaw = 0.5-fu;
       roll = delta_fu-(double)((psi_ref-psi)/fov_u);
       z = delta_fv-(double)((-theta)/fov_v);
 
@@ -178,7 +179,7 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
     //msg.linear.z = z;
     msg.angular.z = yaw;
 
-    //cmd_pub.publish(msg);
+    cmd_pub.publish(msg);
 
     cv::Rect r = cv::Rect(det_msg->x[i],det_msg->y[i],det_msg->height[i],det_msg->width[i]);
     cv::rectangle(cv_ptr->image, r, Scalar(0,0,255),2);
@@ -188,7 +189,7 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
   cv::circle(cv_ptr->image, p, 5, Scalar(0,0,255), -1);
 
   cv:imshow(OPENCV_WINDOW, cv_ptr->image);
-  cv::waitKey(100);
+  cv::waitKey(25);
   //cv::waitKey(3);
 
 }

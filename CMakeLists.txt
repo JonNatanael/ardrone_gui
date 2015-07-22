@@ -82,6 +82,7 @@ install(FILES
 install(PROGRAMS
    scripts/ardrone_gui
    scripts/joy.py
+   scripts/test.py
    scripts/controller.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

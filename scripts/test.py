@@ -1,20 +1,12 @@
 #!/usr/bin/env python
 
-# The Joystick Controller Node for the tutorial "Up and flying with the AR.Drone and ROS | Joystick Control"
-# https://github.com/mikehamer/ardrone_tutorials
-
-# This controller implements the base DroneVideoDisplay class, the DroneController class and subscribes to joystick messages
-
-# Import the ROS libraries, and load the manifest file which through <depend package=... /> will give us access to the project dependencies
 import roslib; roslib.load_manifest('ardrone_gui')
 import rospy
+from geometry_msgs.msg import Twist  
 
 # Load the DroneController class, which handles interactions with the drone, and the DroneVideoDisplay class, which handles video display
 from controller import BasicDroneController
 from drone_video_display import DroneVideoDisplay
-
-# Import the joystick message
-from sensor_msgs.msg import Joy
 
 # Finally the GUI libraries
 from PySide import QtCore, QtGui
@@ -81,25 +73,20 @@ def ReceiveJoystickMessage(data):
 if __name__=='__main__':
 	import sys
 	# Firstly we setup a ros node, so that we can communicate with the other packages
-	rospy.init_node('ardrone_joystick_controller')
+	rospy.init_node('test')
 
-	# Next load in the parameters from the launch-file
-	ButtonEmergency = int (   rospy.get_param("~ButtonEmergency",ButtonEmergency) )
-	ButtonLand      = int (   rospy.get_param("~ButtonLand",ButtonLand) )
-	ButtonTakeoff   = int (   rospy.get_param("~ButtonTakeoff",ButtonTakeoff) )
-	ButtonFlatTrim   = int (   rospy.get_param("~ButtonFlatTrim",ButtonFlatTrim) )
+	pubCommand = rospy.Publisher('/cmd_vel',Twist,queue_size=1)
+	rospy.sleep(1)
 
-	AxisRoll        = int (   rospy.get_param("~AxisRoll",AxisRoll) )
-	AxisPitch       = int (   rospy.get_param("~AxisPitch",AxisPitch) )
-	AxisYaw         = int (   rospy.get_param("~AxisYaw",AxisYaw) )
-	AxisZ           = int (   rospy.get_param("~AxisZ",AxisZ) )
-	ScaleRoll       = float ( rospy.get_param("~ScaleRoll",ScaleRoll) )
-	ScalePitch      = float ( rospy.get_param("~ScalePitch",ScalePitch) )
-	ScaleYaw        = float ( rospy.get_param("~ScaleYaw",ScaleYaw) )
-	ScaleZ          = float ( rospy.get_param("~ScaleZ",ScaleZ) )
+	c = Twist()
+	c.angular.z = 5
 
-	controller = BasicDroneController()
 
-	subJoystick = rospy.Subscriber('/joy', Joy, ReceiveJoystickMessage)
+
+	print "Turning left"
+	pubCommand.publish(c)
+	#rospy.sleep(1)
+	#pubCommand.publish(c)
+
 	
-	rospy.spin()
+	#rospy.spin()
