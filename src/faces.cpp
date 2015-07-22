@@ -32,17 +32,39 @@ double p_fz = 0;
 
 int cam_h = 360;
 int cam_w = 640;
-double fov_v = 35;
-double fov_u = 60;
+double fov_v = 38;
+double fov_u = 70;
 
-double A_exp = 40*30; // pričakovana velikost objekta
+double A_exp = .4*.3; // pričakovana velikost objekta
 double d_exp = 1; //pričakovana razdalja do objekta
 double psi_ref = 0;
+double diff_yaw = 0;
+
+double alpha_x = 460;
+double alpha_y = 530;
+
+#define MULTIROTOR_FRONTCAM_RESOLUTION_WIDTH    640.0
+#define MULTIROTOR_FRONTCAM_RESOLUTION_HEIGHT   360.0
+#define MULTIROTOR_FRONTCAM_HORIZONTAL_ANGLE_OF_VIEW    70.0   // deg
+#define MULTIROTOR_FRONTCAM_VERTICAL_ANGLE_OF_VIEW      38.0   // deg
+#define MULTIROTOR_FRONTCAM_ALPHAX              460.0
+#define MULTIROTOR_FRONTCAM_ALPHAY              530.0
+#define MULTIROTOR_IBVSCONTROLLER_INIT_DEPTH        3.0         // m
+#define MULTIROTOR_IBVSCONTROLLER_TARGET_INIT_SIZE  (0.4*0.3)   // m
 
 
 ros::Publisher cmd_pub;
 
 geometry_msgs::Twist msg;
+
+float distanceToTarget( const float fD) {
+
+    float depth;
+    depth = sqrt(MULTIROTOR_FRONTCAM_ALPHAX*MULTIROTOR_FRONTCAM_ALPHAY*MULTIROTOR_IBVSCONTROLLER_TARGET_INIT_SIZE/(MULTIROTOR_FRONTCAM_RESOLUTION_WIDTH*MULTIROTOR_FRONTCAM_RESOLUTION_HEIGHT)) * fD;
+
+    return depth;
+
+}
 
 void imageCallback(const ImageConstPtr& cam_msg){
   // just image display
@@ -54,7 +76,9 @@ void imageCallback(const ImageConstPtr& cam_msg){
     ROS_ERROR("cv_bridge exception: %s", e.what());
     return;
   }
-  cv:imshow(OPENCV_WINDOW, cv_ptr->image);
+  cv::Point p = cv::Point((double)cam_w/2, (double)cam_h/2);
+  cv::circle(cv_ptr->image, p, 5, Scalar(0,0,255), -1);
+  cv::imshow(OPENCV_WINDOW, cv_ptr->image);
   cv::waitKey(3);
 }
 
@@ -77,7 +101,7 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
   int x,y,w,h;
   double fu,fv,fd;
   double pitch, yaw, roll, z;
-  double psi, theta;
+  double psi, theta, sign_diff_yaw;
 
 
   double delta_fu, delta_fv, delta_fd;
@@ -94,38 +118,63 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
 
       theta = nav_msg->vy;
       psi = nav_msg->rotZ;
-      //psi_ref = psi;
-      if (abs(psi_ref-psi)>25)
-        ROS_INFO("updating psi");
+      psi_ref = psi;
+
+      sign_diff_yaw = (cos(psi)*sin(psi_ref)-cos(psi_ref)*sin(psi))>0 ? 1 : -1;
+      diff_yaw = sign_diff_yaw*acos(cos(psi)*cos(psi_ref)+sin(psi)*sin(psi_ref));
+      if (fabs(diff_yaw)>25.0){
+      	psi_ref = psi;
+      	diff_yaw = 0;
+      }
 
       fu = (x+(double)(w/2))/cam_w;
       fv = (y+(double)(h/2))/cam_h;
       fd = sqrt((cam_w*cam_h)/(w*h));
-      delta_fu = fu-p_fu;
-      delta_fv = fv-p_fv;
-      delta_fd = fd-p_fd;
+      delta_fu = p_fu-fu;
+      delta_fv = p_fv-fv;
+      delta_fd = p_fd-fd;
 
 
       pitch = delta_fd;
       yaw = delta_fu;
-      roll = delta_fu-(double)((psi_ref-psi)/fov_u); // psi_ref je zaenkrat 0
+      roll = delta_fu-(double)((psi_ref-psi)/fov_u);
       z = delta_fv-(double)((-theta)/fov_v);
 
+      //get distance
+      double Dxs, Dys, Dzs, DYs;
+      double x_con,y_con, Y_con, z_con;
+      x_con = sqrt((alpha_x*alpha_y*A_exp)/(cam_h*cam_w));
+      y_con = d_exp*cam_w/alpha_x;
+      z_con = d_exp*cam_h/alpha_y;
+      Y_con = fov_u*(M_PI/180.0);
+      Dxs = x_con*fd;
+      Dys = y_con*(fu-0.5);
+      Dzs = z_con*(fv-0.5);
+      DYs = Y_con*(fu-0.5);
+
+      //pitch *= (cam_h*d_exp)/alpha_y;
+      //roll *= (cam_w*d_exp)/alpha_x;
+      //z *= sqrt(A_exp) * sqrt((alpha_x*alpha_y)/(cam_w*cam_h));
+
+
       //ROS_INFO("fu = %f, fv = %f, fd = %f", fu, fv, fd);
-      ROS_INFO("pitch = %f, roll = %f, yaw = %f, z = %f", pitch, roll, yaw, z);
-      //ROS_INFO("delta fu = %f, delta fv = %f, delta fd = %f", delta_fu, delta_fv, delta_fd);
+      //ROS_INFO("fu = %f, fv = %f, fd = %f, depth = %f", fu, fv, fd,distanceToTarget(fd));
+      //ROS_INFO("pitch = %f, roll = %f, yaw = %f, z = %f", pitch, roll, yaw, z);
+      ROS_INFO("Dxs = %f, Dys = %f, Dzs = %f, DYs = %f", Dxs, Dys, Dzs, DYs);
+      //ROS_INFO("psi = %f, psi_ref = %f, diff_yaw = %f", psi, psi_ref, diff_yaw);
+      ROS_INFO("delta fu = %f, delta fv = %f, delta fd = %f", delta_fu, delta_fv, delta_fd);
       //ROS_INFO("p_fu = %f, p_fv = %f, p_fd = %f", p_fu, p_fv, p_fd);
       
       //ROS_INFO("delta z = %f, delta x = %f", z, fd-p_fd);
-      //ROS_INFO("\n");
+      ROS_INFO("\n");
 
       //save current state
       p_x = det_msg->x[i]; p_y = det_msg->y[i]; p_h = det_msg->height[i]; p_w = det_msg->width[i];
       p_fu = fu; p_fv = fv; p_fd = fd;
     }
 
-    msg.linear.x = pitch;
-    msg.linear.y = roll;
+    //msg.linear.x = pitch;
+    //msg.linear.y = roll;
     //msg.linear.z = z;
     msg.angular.z = yaw;
 
@@ -135,8 +184,11 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
     cv::rectangle(cv_ptr->image, r, Scalar(0,0,255),2);
   }
 
+  cv::Point p = cv::Point((double)cam_w/2, (double)cam_h/2);
+  cv::circle(cv_ptr->image, p, 5, Scalar(0,0,255), -1);
+
   cv:imshow(OPENCV_WINDOW, cv_ptr->image);
-  cv::waitKey(200);
+  cv::waitKey(100);
   //cv::waitKey(3);
 
 }
