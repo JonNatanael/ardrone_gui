@@ -127,12 +127,13 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
 
 
       //pitch = delta_fd;
-      pitch = 1/sqrt(0.025)-fd; // pobral konstanto od Špancev
+      pitch = 0.3*(-(4-fd));
       //yaw = delta_fu;
       yaw = 0.5-fu; // treba je gledat oddaljenost od središča, torej minimiziramo fu-0.5 = 0
-      roll = delta_fu-(double)((psi_ref-psi)/fov_u);
+      //roll = delta_fu-(double)((psi_ref-psi)/fov_u);
+      roll = 0.5-(fu-(double)((psi_ref-psi)/fov_u));
       //z = delta_fv-(double)((-theta)/fov_v);
-      z = (0.5-fv)+0.1;
+      z = (0.5-fv)*0.7;
 
       //get distance
       /*double Dxs, Dys, Dzs, DYs;
@@ -167,12 +168,12 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
       p_fu = fu; p_fv = fv; p_fd = fd;
     }
 
-    //msg.linear.x = pitch;
-    //msg.linear.y = roll;
-    //msg.linear.z = z;
+    msg.linear.x = pitch;
+    msg.linear.y = roll;
+    msg.linear.z = z;
     msg.angular.z = yaw;
 
-    //cmd_pub.publish(msg);
+    cmd_pub.publish(msg);
 
     cv::Rect r = cv::Rect(det_msg->x[i],det_msg->y[i],det_msg->height[i],det_msg->width[i]);
     cv::rectangle(cv_ptr->image, r, Scalar(0,0,255),2);
