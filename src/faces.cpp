@@ -36,21 +36,12 @@ double fov_v = 38;
 double fov_u = 70;
 
 double A_exp = .4*.3; // pričakovana velikost objekta
-double d_exp = 1; //pričakovana razdalja do objekta
+double d_exp = 3; //pričakovana razdalja do objekta
 double psi_ref = 0;
 double diff_yaw = 0;
 
 double alpha_x = 460;
 double alpha_y = 530;
-
-#define MULTIROTOR_FRONTCAM_RESOLUTION_WIDTH    640.0
-#define MULTIROTOR_FRONTCAM_RESOLUTION_HEIGHT   360.0
-#define MULTIROTOR_FRONTCAM_HORIZONTAL_ANGLE_OF_VIEW    70.0   // deg
-#define MULTIROTOR_FRONTCAM_VERTICAL_ANGLE_OF_VIEW      38.0   // deg
-#define MULTIROTOR_FRONTCAM_ALPHAX              460.0
-#define MULTIROTOR_FRONTCAM_ALPHAY              530.0
-#define MULTIROTOR_IBVSCONTROLLER_INIT_DEPTH        3.0         // m
-#define MULTIROTOR_IBVSCONTROLLER_TARGET_INIT_SIZE  (0.4*0.3)   // m
 
 
 ros::Publisher cmd_pub;
@@ -60,7 +51,7 @@ geometry_msgs::Twist msg;
 float distanceToTarget( const float fD) {
 
     float depth;
-    depth = sqrt(MULTIROTOR_FRONTCAM_ALPHAX*MULTIROTOR_FRONTCAM_ALPHAY*MULTIROTOR_IBVSCONTROLLER_TARGET_INIT_SIZE/(MULTIROTOR_FRONTCAM_RESOLUTION_WIDTH*MULTIROTOR_FRONTCAM_RESOLUTION_HEIGHT)) * fD;
+    depth = sqrt(alpha_x*alpha_y*A_exp/(cam_w*cam_h)) * fD;
 
     return depth;
 
@@ -135,14 +126,16 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
       delta_fd = p_fd-fd;
 
 
-      pitch = delta_fd;
+      //pitch = delta_fd;
+      pitch = 1/sqrt(0.025)-fd; // pobral konstanto od Špancev
       //yaw = delta_fu;
-      yaw = 0.5-fu;
+      yaw = 0.5-fu; // treba je gledat oddaljenost od središča, torej minimiziramo fu-0.5 = 0
       roll = delta_fu-(double)((psi_ref-psi)/fov_u);
-      z = delta_fv-(double)((-theta)/fov_v);
+      //z = delta_fv-(double)((-theta)/fov_v);
+      z = (0.5-fv)+0.1;
 
       //get distance
-      double Dxs, Dys, Dzs, DYs;
+      /*double Dxs, Dys, Dzs, DYs;
       double x_con,y_con, Y_con, z_con;
       x_con = sqrt((alpha_x*alpha_y*A_exp)/(cam_h*cam_w));
       y_con = d_exp*cam_w/alpha_x;
@@ -151,7 +144,7 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
       Dxs = x_con*fd;
       Dys = y_con*(fu-0.5);
       Dzs = z_con*(fv-0.5);
-      DYs = Y_con*(fu-0.5);
+      DYs = Y_con*(fu-0.5);*/
 
       //pitch *= (cam_h*d_exp)/alpha_y;
       //roll *= (cam_w*d_exp)/alpha_x;
@@ -160,10 +153,10 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
 
       //ROS_INFO("fu = %f, fv = %f, fd = %f", fu, fv, fd);
       //ROS_INFO("fu = %f, fv = %f, fd = %f, depth = %f", fu, fv, fd,distanceToTarget(fd));
-      //ROS_INFO("pitch = %f, roll = %f, yaw = %f, z = %f", pitch, roll, yaw, z);
-      ROS_INFO("Dxs = %f, Dys = %f, Dzs = %f, DYs = %f", Dxs, Dys, Dzs, DYs);
+      ROS_INFO("pitch = %f, roll = %f, yaw = %f, z = %f", pitch, roll, yaw, z);
+      //ROS_INFO("Dxs = %f, Dys = %f, Dzs = %f, DYs = %f", Dxs, Dys, Dzs, DYs);
       //ROS_INFO("psi = %f, psi_ref = %f, diff_yaw = %f", psi, psi_ref, diff_yaw);
-      ROS_INFO("delta fu = %f, delta fv = %f, delta fd = %f", delta_fu, delta_fv, delta_fd);
+      //ROS_INFO("delta fu = %f, delta fv = %f, delta fd = %f", delta_fu, delta_fv, delta_fd);
       //ROS_INFO("p_fu = %f, p_fv = %f, p_fd = %f", p_fu, p_fv, p_fd);
       
       //ROS_INFO("delta z = %f, delta x = %f", z, fd-p_fd);
@@ -179,7 +172,7 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
     //msg.linear.z = z;
     msg.angular.z = yaw;
 
-    cmd_pub.publish(msg);
+    //cmd_pub.publish(msg);
 
     cv::Rect r = cv::Rect(det_msg->x[i],det_msg->y[i],det_msg->height[i],det_msg->width[i]);
     cv::rectangle(cv_ptr->image, r, Scalar(0,0,255),2);
