@@ -5,9 +5,13 @@
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
+//#include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/video/tracking.hpp>
+#include "opencv2/core/mat.hpp"
+#include <vector>
+
 
 #include <message_filters/subscriber.h>
 #include <message_filters/synchronizer.h>
@@ -20,15 +24,6 @@ static const std::string OPENCV_WINDOW = "Image window";
 using namespace sensor_msgs;
 using namespace message_filters;
 using namespace cv;
-
-int p_x = 0;
-int p_y = 0;
-int p_h = 0;
-int p_w = 0;
-double p_fu = 0;
-double p_fv = 0;
-double p_fd = 0;
-double p_fz = 0;
 
 int cam_h = 360;
 int cam_w = 640;
@@ -43,10 +38,21 @@ double diff_yaw = 0;
 double alpha_x = 460;
 double alpha_y = 530;
 
+double x_ref = 0.5;
+double y_ref = 0.5;
+double d_ref = 6;
+
+int v_lim = 50;
+
+
 
 ros::Publisher cmd_pub;
 
 geometry_msgs::Twist msg;
+std::vector<cv::Point> v;
+std::vector<cv::Point> v_kf;
+KalmanFilter KF(4, 2, 0);
+Mat_<float> measurement(2,1);
 
 float distanceToTarget( const float fD) {
 
@@ -68,14 +74,10 @@ void imageCallback(const ImageConstPtr& cam_msg){
     return;
   }
   cv::Point p = cv::Point((double)cam_w/2, (double)cam_h/2);
-  cv::circle(cv_ptr->image, p, 5, Scalar(0,0,255), -1);
+  cv::circle(cv_ptr->image, p, 5, Scalar(0,0,0), -1);
   cv::imshow(OPENCV_WINDOW, cv_ptr->image);
   cv::waitKey(3);
 }
-
-/*void facesCallback(const facedetector::Detection::ConstPtr& det_msg){
-
-}*/
 
 void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConstPtr& cam_msg, const ardrone_autonomy::Navdata::ConstPtr& nav_msg){
   // syncronised image & detection
@@ -92,21 +94,58 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
   int x,y,w,h;
   double fu,fv,fd;
   double pitch, yaw, roll, z;
+  double pitch_err, yaw_err, roll_err, z_err;
+  double pitch_corr, yaw_corr, roll_corr, z_corr;
   double psi, theta, sign_diff_yaw;
-
 
   double delta_fu, delta_fv, delta_fd;
 
   for (int i = 0; i < det_msg->image.size();i++){
     x = det_msg->x[i];y = det_msg->y[i];h = det_msg->height[i];w = det_msg->width[i];
 
-    if (i==0){ // assumes one face
-      if (p_x != 0 && p_y != 0){
-        // if previous state is not 0, draw line between detection centers and previous position rectangle
-        cv::rectangle(cv_ptr->image, cv::Rect(p_x,p_y,p_h,p_w), Scalar(0,255,255),2);
-        cv::line(cv_ptr->image, cv::Point(p_x+(p_w/2), p_y+(p_h/2)),cv::Point(det_msg->x[i]+(det_msg->width[i]/2),det_msg->y[i]+(det_msg->height[i]/2)),Scalar(255,0,0));
-      }
+    // push point to list
+    v.push_back(cv::Point(x+w/2,y+h/2));
+    if (v.size()>v_lim){
+    	v.erase(v.begin());
+    }
+    // display trajectory
+    for (vector<cv::Point>::iterator it = v.begin(); it!=v.end(); ++it){
+  		cv::Point cur = *it;  		
+  		//cv::circle(cv_ptr->image, cur, 2, Scalar(0,0,255), -1);
+  		if (it!=v.begin()){ // for displaying the trajectory of past detections
+  			cv::Point cur2 = *(--it);
+  			++it;
+			cv::line(cv_ptr->image, cur, cur2, Scalar(0,255,0), 2);
+  		}
+  	}
 
+  	// update KF
+  	Mat prediction = KF.predict();
+	Point predictPt(prediction.at<float>(0),prediction.at<float>(1));
+	measurement(0) = x+w/2;
+	measurement(1) = y+h/2;
+	Mat estimated = KF.correct(measurement);
+	Point statePt(estimated.at<float>(0),estimated.at<float>(1));
+	cv::circle(cv_ptr->image, statePt, 5, Scalar(255,255,255), -1);
+
+	//push predicted point to another list
+	v_kf.push_back(statePt);
+	if (v_kf.size()>v_lim){
+    	v_kf.erase(v_kf.begin());
+    }
+    for (vector<cv::Point>::iterator it = v_kf.begin(); it!=v_kf.end(); ++it){
+  		cv::Point cur = *it;  		
+  		if (it!=v_kf.begin()){ // for displaying the trajectory of past detections
+  			cv::Point cur2 = *(--it);
+  			++it;
+			cv::line(cv_ptr->image, cur, cur2, Scalar(0,0,255), 2);
+  		}
+  	}
+
+
+    cv::line(cv_ptr->image, cv::Point(cam_w/2, cam_h/2),cv::Point(x+w/2,y+h/2),Scalar(0,255,255),2);
+
+    if (i==0){ // assumes one face
       theta = nav_msg->vy;
       psi = nav_msg->rotZ;
       psi_ref = psi;
@@ -118,22 +157,40 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
       	diff_yaw = 0;
       }
 
+      // featurji iz detektorja
       fu = (x+(double)(w/2))/cam_w;
       fv = (y+(double)(h/2))/cam_h;
       fd = sqrt((cam_w*cam_h)/(w*h));
-      delta_fu = p_fu-fu;
-      delta_fv = p_fv-fv;
-      delta_fd = p_fd-fd;
+      // razdalja med referenco in trenutno meritvijo
+      delta_fu = x_ref-fu;
+      delta_fv = y_ref-fv;
+      delta_fd = d_ref-fd;
+      // računanje napak po formulah
+      yaw_err = delta_fu;
+      roll_err = delta_fu-(double)((psi_ref-psi)/fov_u);
+      z_err = delta_fv-(double)((-theta)/fov_v);
+      pitch_err = delta_fd;
+      // upoštevanje popravkov
+      yaw_corr = x_ref-yaw_err;
+      roll_corr = x_ref-roll_err;
+      z_corr = y_ref-z_err;
+      pitch_corr = d_ref-pitch_err;
+
+      //izračunamo ukaze
+      yaw = x_ref-yaw_corr;
+      roll = x_ref-roll_corr;
+      z = y_ref-z_corr;
+      pitch = d_ref-pitch_corr;
 
 
       //pitch = delta_fd;
-      pitch = 0.3*(-(4-fd));
+      //pitch = 0.3*(-(6-fd));
       //yaw = delta_fu;
-      yaw = 0.5-fu; // treba je gledat oddaljenost od središča, torej minimiziramo fu-0.5 = 0
+      //yaw = 0.5-fu; // treba je gledat oddaljenost od središča, torej minimiziramo fu-0.5 = 0
       //roll = delta_fu-(double)((psi_ref-psi)/fov_u);
-      roll = 0.5-(fu-(double)((psi_ref-psi)/fov_u));
+      //roll = 0.5-(fu-(double)((psi_ref-psi)/fov_u));
       //z = delta_fv-(double)((-theta)/fov_v);
-      z = (0.5-fv)*0.7;
+      //z = (0.5-fv)*0.7;
 
       //get distance
       /*double Dxs, Dys, Dzs, DYs;
@@ -147,25 +204,16 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
       Dzs = z_con*(fv-0.5);
       DYs = Y_con*(fu-0.5);*/
 
-      //pitch *= (cam_h*d_exp)/alpha_y;
-      //roll *= (cam_w*d_exp)/alpha_x;
-      //z *= sqrt(A_exp) * sqrt((alpha_x*alpha_y)/(cam_w*cam_h));
-
-
       //ROS_INFO("fu = %f, fv = %f, fd = %f", fu, fv, fd);
       //ROS_INFO("fu = %f, fv = %f, fd = %f, depth = %f", fu, fv, fd,distanceToTarget(fd));
-      ROS_INFO("pitch = %f, roll = %f, yaw = %f, z = %f", pitch, roll, yaw, z);
+      //ROS_INFO("pitch = %f, roll = %f, yaw = %f, z = %f", pitch, roll, yaw, z);
+      //ROS_INFO("pitch = %f, roll = %f, yaw = %f, z = %f", pitch_corr, roll_corr, yaw_corr, z_corr);
       //ROS_INFO("Dxs = %f, Dys = %f, Dzs = %f, DYs = %f", Dxs, Dys, Dzs, DYs);
       //ROS_INFO("psi = %f, psi_ref = %f, diff_yaw = %f", psi, psi_ref, diff_yaw);
       //ROS_INFO("delta fu = %f, delta fv = %f, delta fd = %f", delta_fu, delta_fv, delta_fd);
-      //ROS_INFO("p_fu = %f, p_fv = %f, p_fd = %f", p_fu, p_fv, p_fd);
       
       //ROS_INFO("delta z = %f, delta x = %f", z, fd-p_fd);
-      ROS_INFO("\n");
-
-      //save current state
-      p_x = det_msg->x[i]; p_y = det_msg->y[i]; p_h = det_msg->height[i]; p_w = det_msg->width[i];
-      p_fu = fu; p_fv = fv; p_fd = fd;
+      //ROS_INFO("\n");
     }
 
     msg.linear.x = pitch;
@@ -173,18 +221,18 @@ void callback(const facedetector::Detection::ConstPtr& det_msg, const ImageConst
     msg.linear.z = z;
     msg.angular.z = yaw;
 
-    cmd_pub.publish(msg);
+    //cmd_pub.publish(msg);
 
     cv::Rect r = cv::Rect(det_msg->x[i],det_msg->y[i],det_msg->height[i],det_msg->width[i]);
     cv::rectangle(cv_ptr->image, r, Scalar(0,0,255),2);
   }
 
   cv::Point p = cv::Point((double)cam_w/2, (double)cam_h/2);
-  cv::circle(cv_ptr->image, p, 5, Scalar(0,0,255), -1);
+  cv::circle(cv_ptr->image, p, 5, Scalar(0,0,0), -1);
 
   cv:imshow(OPENCV_WINDOW, cv_ptr->image);
-  cv::waitKey(25);
-  //cv::waitKey(3);
+  //cv::waitKey(25);
+  cv::waitKey(3);
 
 }
 
@@ -209,6 +257,19 @@ int main(int argc, char **argv)
   sync.registerCallback(boost::bind(&callback, _1, _2, _3));
 
   cmd_pub = n.advertise<geometry_msgs::Twist>("/cmd_vel", 1000);
+
+  // KF init
+  	KF.transitionMatrix = *(Mat_<float>(4, 4) << 1,0,2,0,   0,1,0,2,  0,0,1,0,  0,0,0,1);
+	measurement.setTo(Scalar(0));
+	KF.statePre.at<float>(0) = cam_w/2;
+	KF.statePre.at<float>(1) = cam_h/2;
+	KF.statePre.at<float>(2) = 0;
+	KF.statePre.at<float>(3) = 0;
+	setIdentity(KF.measurementMatrix);
+	setIdentity(KF.processNoiseCov, Scalar::all(1e-4));
+	setIdentity(KF.measurementNoiseCov, Scalar::all(1e-1));
+	setIdentity(KF.errorCovPost, Scalar::all(.1));
+	
 
   cv::namedWindow(OPENCV_WINDOW);
 
