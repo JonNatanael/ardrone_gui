@@ -51,8 +51,8 @@ add_library(
   ${rqt_my_plugin_UIS_H}
 )
 
-add_executable(faces src/faces.cpp)
-target_link_libraries(faces ${catkin_LIBRARIES} ${OpenCV_LIBS})
+#add_executable(faces src/faces.cpp)
+#target_link_libraries(faces ${catkin_LIBRARIES} ${OpenCV_LIBS})
 
 file(GLOB_RECURSE QT_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINKS *.cpp)
 
