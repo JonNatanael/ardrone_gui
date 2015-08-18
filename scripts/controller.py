@@ -39,6 +39,7 @@ class BasicDroneController(object):
 		self.pubReset   = rospy.Publisher('/ardrone/reset',Empty,queue_size=1)
 		self.srvIMU = rospy.ServiceProxy('/ardrone/imu_recalib',srvEmpty)
 		self.srvFlatTrim = rospy.ServiceProxy('/ardrone/flattrim',srvEmpty)
+		self.pubUtil = rospy.Publisher('/ardrone/util', Empty)
 		
 		# Allow the controller to publish to the /cmd_vel topic and thus control the drone
 		self.pubCommand = rospy.Publisher('/cmd_vel',Twist,queue_size=1)
@@ -71,6 +72,10 @@ class BasicDroneController(object):
 
 	def SendFlatTrim(self):
 		print self.srvFlatTrim()
+
+	def SendUtil(self):
+		# Send an empty utility message to be read by some other node
+		self.pubUtil.publish(Empty())
 
 	def SetCommand(self,roll=0,pitch=0,yaw_velocity=0,z_velocity=0):
 		# Called by the main program to set the current command

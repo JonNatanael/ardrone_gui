@@ -24,6 +24,7 @@ ButtonEmergency = 0
 ButtonLand      = 1
 ButtonTakeoff   = 2
 ButtonFlatTrim  = 3
+ButtonUtil = 4
 
 # define the default mapping between joystick axes and their corresponding directions
 AxisRoll        = 0
@@ -51,6 +52,9 @@ def ReceiveJoystickMessage(data):
 	elif data.buttons[ButtonFlatTrim]==1:
 		rospy.loginfo("Flat Trim Button Pressed")
 		controller.SendFlatTrim()
+	elif data.buttons[ButtonUtil]==1:
+		rospy.loginfo("Util Button Pressed")
+		controller.SendUtil()
 	else:
 		#print data.axes
 		if data.axes[AxisRoll] != 0:
@@ -88,6 +92,7 @@ if __name__=='__main__':
 	ButtonLand      = int (   rospy.get_param("~ButtonLand",ButtonLand) )
 	ButtonTakeoff   = int (   rospy.get_param("~ButtonTakeoff",ButtonTakeoff) )
 	ButtonFlatTrim   = int (   rospy.get_param("~ButtonFlatTrim",ButtonFlatTrim) )
+	ButtonUtil   = int (   rospy.get_param("~ButtonUtil",ButtonUtil) )
 
 	AxisRoll        = int (   rospy.get_param("~AxisRoll",AxisRoll) )
 	AxisPitch       = int (   rospy.get_param("~AxisPitch",AxisPitch) )
